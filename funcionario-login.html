@@ -48,15 +48,9 @@
 
   <script src="js/theme.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/mask-cpf.js"></script>
   <script>
-    const cpfInput = document.getElementById("cpf");
-    cpfInput.addEventListener("input", () => {
-      let v = cpfInput.value.replace(/\D/g, "").slice(0, 11);
-      v = v.replace(/(\d{3})(\d)/, "$1.$2");
-      v = v.replace(/(\d{3})(\d)/, "$1.$2");
-      v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-      cpfInput.value = v;
-    });
+    aplicarMascaraCPF(document.getElementById("cpf"));
 
     document.getElementById("formLogin").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -67,7 +61,7 @@
         const data = await Api.request("/api/auth", {
           method: "POST",
           auth: false,
-          body: { action: "login-funcionario", cpf: cpfInput.value },
+          body: { action: "login-funcionario", cpf: document.getElementById("cpf").value },
         });
         Api.setSessao(data.token, "funcionario", data.nome);
         window.location.href = "painel-funcionario.html";

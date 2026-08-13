@@ -288,6 +288,23 @@ function renderConcentracao(periodos, ano) {
   `;
 }
 
+let ordenacaoSemSolicitacao = { campo: "nome", asc: true };
+const COLUNAS_SEM_SOLICITACAO = [
+  { campo: "nome", label: "Nome" },
+  { campo: "cpf", label: "CPF" },
+  { campo: "regiao", label: "Região" },
+  { campo: "gestor", label: "Gestor" },
+];
+
+function ordenarSemSolicitacao(campo) {
+  if (ordenacaoSemSolicitacao.campo === campo) {
+    ordenacaoSemSolicitacao.asc = !ordenacaoSemSolicitacao.asc;
+  } else {
+    ordenacaoSemSolicitacao = { campo, asc: true };
+  }
+  renderSemSolicitacao();
+}
+
 function renderSemSolicitacao() {
   const div = document.getElementById("semSolicitacao");
   const stats = dadosDashboard;
@@ -295,18 +312,38 @@ function renderSemSolicitacao() {
     div.innerHTML = `<p class="hint">Todos os funcionários já possuem uma solicitação em andamento ou aprovada.</p>`;
     return;
   }
+
+  const { campo, asc } = ordenacaoSemSolicitacao;
+  const lista = [...stats.semSolicitacao].sort((a, b) => {
+    const va = String(a[campo] || "").toLowerCase();
+    const vb = String(b[campo] || "").toLowerCase();
+    if (va < vb) return asc ? -1 : 1;
+    if (va > vb) return asc ? 1 : -1;
+    return 0;
+  });
+
+  const headerHtml = COLUNAS_SEM_SOLICITACAO.map((c) => {
+    const ativo = campo === c.campo;
+    const seta = ativo ? (asc ? "▲" : "▼") : "↕";
+    return `<th class="ordenavel ${ativo ? "ativo" : ""}" data-campo="${c.campo}">${c.label} <span class="seta">${seta}</span></th>`;
+  }).join("");
+
   div.innerHTML = `
     <div class="table-wrap">
-      <table>
-        <thead><tr><th>Nome</th><th>CPF</th><th>Região</th><th>Gestor</th></tr></thead>
+      <table class="tabela-fixa">
+        <thead><tr>${headerHtml}</tr></thead>
         <tbody>
-          ${stats.semSolicitacao
-            .map((f) => `<tr><td>${f.nome}</td><td>${f.cpf}</td><td>${f.regiao || "-"}</td><td>${f.gestor || "-"}</td></tr>`)
+          ${lista
+            .map((f) => `<tr><td title="${f.nome}">${f.nome}</td><td>${f.cpf}</td><td>${f.regiao || "-"}</td><td>${f.gestor || "-"}</td></tr>`)
             .join("")}
         </tbody>
       </table>
     </div>
   `;
+
+  div.querySelectorAll("th.ordenavel").forEach((th) => {
+    th.addEventListener("click", () => ordenarSemSolicitacao(th.dataset.campo));
+  });
 }
 
 init();

@@ -648,6 +648,146 @@ th.ordenavel.ativo .seta {
   width: auto;
 }
 
+/* ---- Modal ---- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 20, 0.55);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 30px 16px;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.modal-overlay[hidden] {
+  display: none;
+}
+
+.modal-box {
+  background: var(--bg-card);
+  border-radius: var(--raio);
+  border: 1px solid var(--borda);
+  box-shadow: var(--sombra);
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--borda);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.modal-fechar {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--texto-suave);
+  padding: 4px;
+}
+
+.modal-body {
+  padding: 20px 22px;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--borda);
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.modal-footer .empurrar-esquerda {
+  margin-right: auto;
+}
+
+/* ---- Botão de ícone (editar/etc na tabela) ---- */
+.btn-icone {
+  background: transparent;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--texto);
+}
+
+.btn-icone:hover {
+  background: var(--bg);
+}
+
+/* ---- Tabelas de linha única, sem quebra e sem scroll horizontal ---- */
+table.tabela-fixa {
+  table-layout: fixed;
+  width: 100%;
+}
+
+table.tabela-fixa td,
+table.tabela-fixa th {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Abas de importação (colar / arquivo) ---- */
+.import-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.import-tabs button {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--borda);
+  background: var(--bg-input);
+  color: var(--texto-suave);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.import-tabs button.ativo {
+  background: var(--primaria);
+  border-color: var(--primaria);
+  color: #fff;
+}
+
+.dropzone {
+  border: 2px dashed var(--borda);
+  border-radius: 10px;
+  padding: 26px 16px;
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.dropzone:hover {
+  border-color: var(--primaria);
+}
+
 @media (max-width: 640px) {
   .periodo-row {
     grid-template-columns: 1fr;

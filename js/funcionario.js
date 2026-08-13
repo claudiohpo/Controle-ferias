@@ -79,7 +79,7 @@ function renderFormularioSolicitacao() {
         <button type="button" class="btn secundario pequeno" id="btnAddPeriodo" style="margin-top:12px;">+ Adicionar período</button>
 
         <label for="abono">Abono pecuniário (venda de dias) — máximo ${abonoMax}</label>
-        <input type="number" id="abono" min="0" max="${abonoMax}" value="0" />
+        <input type="number" id="abono" min="0" max="${abonoMax}" placeholder="0" value="" />
 
         <p class="hint" id="resumoDias"></p>
 

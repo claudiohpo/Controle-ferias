@@ -9,6 +9,7 @@ let regioesDoGestor = [];
 let regioesFiltroAtual = [];
 let ordenacaoAtual = { campo: "dataLimiteInicioFerias", asc: true };
 let editandoId = null;
+let arquivoCsvTexto = null;
 
 const COLUNAS = [
   { campo: "nome", label: "Nome" },
@@ -24,13 +25,53 @@ const COLUNAS = [
 async function init() {
   if (!renderGestorNav("funcionarios")) return;
 
+  inicializarModal("modalFuncionario");
+  inicializarModal("modalImportar");
+  aplicarMascaraCPF(document.getElementById("cpf"));
+
   document.getElementById("formNovo").addEventListener("submit", salvarFuncionario);
+  document.getElementById("btnExcluirFuncionario").addEventListener("click", () => excluirFuncionario(editandoId, true));
+  document.getElementById("btnAbrirNovo").addEventListener("click", () => {
+    sairModoEdicao();
+    abrirModal("modalFuncionario");
+  });
+  document.getElementById("btnAbrirImportar").addEventListener("click", () => {
+    document.getElementById("msgLote").className = "mensagem";
+    document.getElementById("loteTexto").value = "";
+    document.getElementById("arquivoCsv").value = "";
+    document.getElementById("nomeArquivoCsv").textContent = "";
+    arquivoCsvTexto = null;
+    abrirModal("modalImportar");
+  });
+
+  document.getElementById("tabColar").addEventListener("click", () => alternarAbaImportar("colar"));
+  document.getElementById("tabArquivo").addEventListener("click", () => alternarAbaImportar("arquivo"));
+  document.getElementById("arquivoCsv").addEventListener("change", carregarArquivoCsv);
   document.getElementById("btnImportar").addEventListener("click", importarLote);
+
   document.getElementById("busca").addEventListener("input", debounce(carregarLista, 350));
-  document.getElementById("btnCancelarEdicao").addEventListener("click", sairModoEdicao);
 
   await carregarListaRegioes();
   await carregarLista();
+}
+
+function alternarAbaImportar(aba) {
+  document.getElementById("tabColar").classList.toggle("ativo", aba === "colar");
+  document.getElementById("tabArquivo").classList.toggle("ativo", aba === "arquivo");
+  document.getElementById("painelColar").style.display = aba === "colar" ? "block" : "none";
+  document.getElementById("painelArquivo").style.display = aba === "arquivo" ? "block" : "none";
+}
+
+function carregarArquivoCsv() {
+  const input = document.getElementById("arquivoCsv");
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById("nomeArquivoCsv").textContent = file.name;
+  const leitor = new FileReader();
+  leitor.onload = () => {
+    arquivoCsvTexto = String(leitor.result || "");
+  };
+  leitor.readAsText(file, "utf-8");
 }
 
 function debounce(fn, ms) {
@@ -70,7 +111,8 @@ function sairModoEdicao() {
   limparFormulario();
   document.getElementById("tituloFormFuncionario").textContent = "Novo funcionário";
   document.getElementById("btnSalvarFuncionario").textContent = "Cadastrar";
-  document.getElementById("btnCancelarEdicao").style.display = "none";
+  document.getElementById("btnExcluirFuncionario").style.display = "none";
+  document.getElementById("msgNovo").className = "mensagem";
 }
 
 function entrarModoEdicao(f) {
@@ -78,6 +120,7 @@ function entrarModoEdicao(f) {
   document.getElementById("funcionarioId").value = f._id;
   document.getElementById("nome").value = f.nome || "";
   document.getElementById("cpf").value = f.cpf || "";
+  aplicarMascaraCPF(document.getElementById("cpf"));
   document.getElementById("matricula").value = f.matricula || "";
   document.getElementById("gestorNome").value = f.gestor || "";
   document.getElementById("regiao").value = f.regiao || "";
@@ -89,14 +132,15 @@ function entrarModoEdicao(f) {
 
   document.getElementById("tituloFormFuncionario").textContent = `Editando: ${f.nome}`;
   document.getElementById("btnSalvarFuncionario").textContent = "Salvar alterações";
-  document.getElementById("btnCancelarEdicao").style.display = "inline-flex";
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  document.getElementById("btnExcluirFuncionario").style.display = "inline-flex";
+  document.getElementById("msgNovo").className = "mensagem";
+  abrirModal("modalFuncionario");
 }
 
 function dadosDoFormulario() {
   return {
     nome: document.getElementById("nome").value,
-    cpf: document.getElementById("cpf").value,
+    cpf: somenteNumerosCPF(document.getElementById("cpf").value),
     matricula: document.getElementById("matricula").value,
     gestor: document.getElementById("gestorNome").value,
     regiao: document.getElementById("regiao").value,
@@ -115,13 +159,10 @@ async function salvarFuncionario(e) {
   try {
     if (editandoId) {
       await Api.request("/api/funcionarios", { method: "PUT", body: { id: editandoId, ...dadosDoFormulario() } });
-      msg.className = "mensagem sucesso";
-      msg.textContent = "Funcionário atualizado com sucesso.";
     } else {
       await Api.request("/api/funcionarios", { method: "POST", body: dadosDoFormulario() });
-      msg.className = "mensagem sucesso";
-      msg.textContent = "Funcionário cadastrado com sucesso.";
     }
+    fecharModal("modalFuncionario");
     sairModoEdicao();
     await carregarListaRegioes();
     await carregarLista();
@@ -131,11 +172,24 @@ async function salvarFuncionario(e) {
   }
 }
 
+// Detecta se a primeira linha é um cabeçalho (ex.: "nome;cpf;...") e a descarta.
+function removerCabecalho(linhas) {
+  if (!linhas.length) return linhas;
+  const primeiraColuna = (linhas[0].split(";")[0] || "").trim().toLowerCase();
+  if (["nome", "name", "funcionario", "funcionário"].includes(primeiraColuna)) {
+    return linhas.slice(1);
+  }
+  return linhas;
+}
+
 function parseLote(texto) {
-  return texto
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l.length)
+  const linhas = removerCabecalho(
+    texto
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.length)
+  );
+  return linhas
     .map((linha) => {
       const [nome, cpf, matricula, gestor, regiao, periodoAquisitivoInicio, periodoAquisitivoFim, dataLimiteInicioFerias, dataLimiteProgramacao] = linha
         .split(";")
@@ -152,17 +206,26 @@ function parseLote(texto) {
         dataLimiteProgramacao: dataLimiteProgramacao || undefined,
       };
     })
-    .filter((item) => item.nome && item.nome.toLowerCase() !== "nome");
+    .filter((item) => item.nome);
 }
 
 async function importarLote() {
   const msg = document.getElementById("msgLote");
   msg.className = "mensagem";
-  const texto = document.getElementById("loteTexto").value;
+
+  const usandoArquivo = document.getElementById("tabArquivo").classList.contains("ativo");
+  const texto = usandoArquivo ? arquivoCsvTexto : document.getElementById("loteTexto").value;
+
+  if (!texto) {
+    msg.className = "mensagem erro";
+    msg.textContent = usandoArquivo ? "Selecione um arquivo .csv." : "Cole ao menos uma linha válida.";
+    return;
+  }
+
   const lote = parseLote(texto);
   if (!lote.length) {
     msg.className = "mensagem erro";
-    msg.textContent = "Cole ao menos uma linha válida.";
+    msg.textContent = "Nenhuma linha válida encontrada.";
     return;
   }
   try {
@@ -171,7 +234,6 @@ async function importarLote() {
     msg.textContent =
       `Importação concluída: ${resultado.criados} criado(s), ${resultado.atualizados} atualizado(s).` +
       (resultado.erros.length ? ` Erros: ${resultado.erros.join(" | ")}` : "");
-    document.getElementById("loteTexto").value = "";
     await carregarListaRegioes();
     await carregarLista();
   } catch (err) {
@@ -199,12 +261,12 @@ async function carregarLista() {
 
 function ordenarLista(lista) {
   const { campo, asc } = ordenacaoAtual;
+  const camposTexto = ["nome", "cpf", "matricula", "gestor", "regiao"];
   const copia = [...lista];
   copia.sort((a, b) => {
     let va = a[campo] || "";
     let vb = b[campo] || "";
-    if (campo !== "nome" && campo !== "cpf" && campo !== "matricula" && campo !== "gestor" && campo !== "regiao") {
-      // campos de data: comparação textual ISO já funciona cronologicamente
+    if (!camposTexto.includes(campo)) {
       va = va || "9999-99-99";
       vb = vb || "9999-99-99";
     } else {
@@ -239,12 +301,16 @@ function renderTabela() {
   const headerHtml = COLUNAS.map((c) => {
     const ativo = ordenacaoAtual.campo === c.campo;
     const seta = ativo ? (ordenacaoAtual.asc ? "▲" : "▼") : "↕";
-    return `<th class="ordenavel ${ativo ? "ativo" : ""}" data-campo="${c.campo}">${c.label} <span class="seta">${seta}</span></th>`;
+    return `<th class="ordenavel ${ativo ? "ativo" : ""}" data-campo="${c.campo}" title="${c.label}">${c.label} <span class="seta">${seta}</span></th>`;
   }).join("");
 
   div.innerHTML = `
     <div class="table-wrap">
-      <table>
+      <table class="tabela-fixa">
+        <colgroup>
+          <col style="width:20%" /><col style="width:14%" /><col style="width:9%" /><col style="width:11%" />
+          <col style="width:11%" /><col style="width:11%" /><col style="width:11%" /><col style="width:9%" /><col style="width:44px" />
+        </colgroup>
         <thead>
           <tr>${headerHtml}<th></th></tr>
         </thead>
@@ -253,18 +319,15 @@ function renderTabela() {
             .map(
               (f) => `
             <tr>
-              <td>${f.nome}</td>
-              <td>${f.cpf}</td>
-              <td>${f.matricula || "-"}</td>
-              <td>${f.gestor || "-"}</td>
-              <td>${f.regiao || "-"}</td>
+              <td title="${f.nome}">${f.nome}</td>
+              <td title="${f.cpf}">${f.cpf}</td>
+              <td title="${f.matricula || ""}">${f.matricula || "-"}</td>
+              <td title="${f.gestor || ""}">${f.gestor || "-"}</td>
+              <td title="${f.regiao || ""}">${f.regiao || "-"}</td>
               <td>${fmtData(f.periodoAquisitivoInicio)}</td>
               <td>${fmtData(f.periodoAquisitivoFim)}</td>
               <td>${fmtData(f.dataLimiteInicioFerias)}</td>
-              <td style="white-space:nowrap;">
-                <button class="btn secundario pequeno" data-editar="${f._id}">Editar</button>
-                <button class="btn secundario pequeno" data-excluir="${f._id}">Excluir</button>
-              </td>
+              <td><button class="btn-icone" data-editar="${f._id}" title="Editar" aria-label="Editar">✏️</button></td>
             </tr>
           `
             )
@@ -283,15 +346,17 @@ function renderTabela() {
       if (f) entrarModoEdicao(f);
     });
   });
-  div.querySelectorAll("[data-excluir]").forEach((btn) => {
-    btn.addEventListener("click", () => excluirFuncionario(btn.dataset.excluir));
-  });
 }
 
-async function excluirFuncionario(id) {
+async function excluirFuncionario(id, fecharModalAoExcluir) {
+  if (!id) return;
   if (!confirm("Tem certeza que deseja excluir este funcionário? Esta ação não pode ser desfeita.")) return;
   try {
     await Api.request(`/api/funcionarios?id=${id}`, { method: "DELETE" });
+    if (fecharModalAoExcluir) {
+      fecharModal("modalFuncionario");
+      sairModoEdicao();
+    }
     await carregarLista();
   } catch (err) {
     alert(err.message);

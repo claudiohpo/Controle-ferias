@@ -125,6 +125,17 @@ Uso interno / privado.
 
 ## 🆕 Changelog
 
+**v1.3**
+- **Máscara de CPF** aplicada em todos os campos de CPF (login do funcionário e cadastro/edição pelo gestor) — aceita digitação ou colagem com ou sem pontuação, sempre enviando somente números para o banco.
+- **Abono pecuniário** sem o "0" fixo pré-digitado — agora aparece apenas como exemplo em cinza (placeholder).
+- **Tabela "Funcionários sem solicitação"** no dashboard agora tem colunas clicáveis para ordenar, com ordem alfabética por nome como padrão.
+- **Texto de importação em lote** reformulado — o exemplo de formato foi movido para dentro do campo (placeholder), evitando que o texto vazasse do card.
+- **Tabela de funcionários** sem quebra de linha em nenhuma célula e sem barra de rolagem horizontal (texto truncado com "..." e tooltip ao passar o mouse quando necessário).
+- **Cadastro e edição de funcionários agora em modal**: um único botão "+ Novo funcionário" abre o formulário; cada linha da tabela tem um botão de lápis (✏️) que abre o mesmo formulário em modo de edição, com botões Cancelar / Salvar / Excluir.
+- **Importação em lote também em modal**, com duas abas: colar o texto (como antes) ou enviar um arquivo `.csv`. Em ambos os casos, se a primeira linha for um cabeçalho (ex.: começa com "nome"), ela é detectada e ignorada automaticamente.
+- **Solicitações** agora abre por padrão com "Todos os status" selecionado (antes vinha filtrado em "Pendentes").
+- **Gestores** segue o mesmo padrão de modal: botão "+ Novo gestor" e lápis para editar (nome, regiões, redefinir senha) ou excluir.
+
 **v1.2**
 - **Lista de funcionários**: ordenação padrão pelo Prazo Limite (mais próximo primeiro); todas as colunas (Nome, Período Aquisitivo início/fim, Prazo Limite, Matrícula, CPF, Região) agora são clicáveis para ordenar (clique novamente para inverter).
 - **Datas do RH**: o cadastro/importação agora aceita as datas reais informadas pelo RH (fim do aquisitivo, data limite de início e data limite de programação). Quando não informadas, o sistema calcula automaticamente seguindo o padrão observado nas planilhas (fim do aquisitivo = início + 1 ano - 1 dia; limite de início = fim do aquisitivo + 11 meses; limite de programação = limite de início - 1 mês). A solicitação de férias agora também bloqueia o envio após a data limite de programação.
