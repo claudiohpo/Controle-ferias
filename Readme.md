@@ -118,3 +118,16 @@ sistema-ferias/
 ## 📄 Licença
 
 Uso interno / privado.
+
+## 🆕 Changelog
+
+**v1.1**
+- Gestor agora pode **cancelar** uma solicitação já aprovada (novo status `cancelado`), liberando o funcionário para enviar uma nova solicitação.
+- O documento impresso pelo funcionário deixou de se chamar "Comprovante de Férias" e passou a ser **"Programação de Férias — Pré-aprovada"**, com aviso explícito de que não substitui a aprovação final do RH/gerente.
+- Texto inicial do portal alterado para "Programação de férias - Stefanini".
+- Novo **Dashboard visual** do gestor:
+  - Gráfico de rosca (donut) com a distribuição de solicitações por status.
+  - Gráfico de barras com a quantidade de funcionários de férias por mês (seletor de ano).
+  - **Calendário anual (linha do tempo/Gantt)** com uma linha por funcionário e barras coloridas mostrando os períodos aprovados — permite identificar visualmente sobreposições entre pessoas diferentes.
+  - Lista dos **dias com maior concentração de férias** (dias em que 2+ funcionários estarão simultaneamente de férias).
+

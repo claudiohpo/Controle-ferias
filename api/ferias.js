@@ -109,9 +109,9 @@ module.exports = async (req, res) => {
       const body = await readBody(req);
       const q = req.query || {};
       const id = q.id || body.id;
-      if (!id || !body.status || !["aprovado", "rejeitado"].includes(body.status)) {
+      if (!id || !body.status || !["aprovado", "rejeitado", "cancelado"].includes(body.status)) {
         res.statusCode = 400;
-        return res.end(JSON.stringify({ error: "Informe id e status ('aprovado' ou 'rejeitado')." }));
+        return res.end(JSON.stringify({ error: "Informe id e status ('aprovado', 'rejeitado' ou 'cancelado')." }));
       }
       let solicitacaoId;
       try {
@@ -124,6 +124,10 @@ module.exports = async (req, res) => {
       if (!existente) {
         res.statusCode = 404;
         return res.end(JSON.stringify({ error: "Solicitação não encontrada." }));
+      }
+      if (body.status === "cancelado" && !["aprovado", "pendente"].includes(existente.status)) {
+        res.statusCode = 400;
+        return res.end(JSON.stringify({ error: "Somente solicitações pendentes ou aprovadas podem ser canceladas." }));
       }
       await solicitacoes.updateOne(
         { _id: solicitacaoId },

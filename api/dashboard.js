@@ -20,10 +20,21 @@ module.exports = async (req, res) => {
     const pendentes = await solicitacoes.countDocuments({ status: "pendente" });
     const aprovadas = await solicitacoes.countDocuments({ status: "aprovado" });
     const rejeitadas = await solicitacoes.countDocuments({ status: "rejeitado" });
+    const canceladas = await solicitacoes.countDocuments({ status: "cancelado" });
 
     const comSolicitacao = await solicitacoes.distinct("funcionarioId", { status: { $in: ["pendente", "aprovado"] } });
     const todosFuncionarios = await funcionarios.find({}, { projection: { nome: 1, cpf: 1, regiao: 1, gestor: 1 } }).toArray();
     const semSolicitacao = todosFuncionarios.filter((f) => !comSolicitacao.includes(String(f._id)));
+
+    // Períodos aprovados, usados para montar o calendário anual e os gráficos de ocupação.
+    const aprovadasDocs = await solicitacoes
+      .find({ status: "aprovado" }, { projection: { funcionarioNome: 1, funcionarioCpf: 1, periodos: 1 } })
+      .toArray();
+    const feriasAprovadas = aprovadasDocs.map((s) => ({
+      funcionarioNome: s.funcionarioNome,
+      funcionarioCpf: s.funcionarioCpf,
+      periodos: s.periodos,
+    }));
 
     res.statusCode = 200;
     return res.end(
@@ -32,7 +43,9 @@ module.exports = async (req, res) => {
         pendentes,
         aprovadas,
         rejeitadas,
+        canceladas,
         semSolicitacao,
+        feriasAprovadas,
       })
     );
   } catch (err) {

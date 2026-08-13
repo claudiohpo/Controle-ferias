@@ -15,6 +15,34 @@
 
     <div class="grid cols-4" id="statsGrid" style="margin-bottom:20px;"></div>
 
+    <div class="grid cols-2" style="align-items:start; margin-bottom:20px;">
+      <div class="card">
+        <h2 style="margin-top:0; font-size:1rem;">Status das solicitações</h2>
+        <div id="donutStatus"></div>
+      </div>
+      <div class="card">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <h2 style="margin:0; font-size:1rem;">Funcionários de férias por mês</h2>
+          <select id="anoSelect" style="width:auto;"></select>
+        </div>
+        <div id="barMensal" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+        <h2 style="margin:0; font-size:1rem;">Calendário anual de férias aprovadas</h2>
+        <span class="hint" id="anoCalendarioLabel"></span>
+      </div>
+      <p class="hint">Cada linha representa um funcionário; a cor identifica a pessoa e a barra mostra o período aprovado. Passe o mouse sobre uma barra para ver os detalhes.</p>
+      <div id="calendarioAnual" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <h2 style="margin-top:0; font-size:1rem;">Dias com maior concentração de férias</h2>
+      <div id="concentracaoDias">Carregando...</div>
+    </div>
+
     <div class="card">
       <h2 style="margin-top:0; font-size:1rem;">Funcionários sem solicitação de férias</h2>
       <div id="semSolicitacao">Carregando...</div>

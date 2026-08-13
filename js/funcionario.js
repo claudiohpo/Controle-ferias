@@ -200,7 +200,7 @@ async function renderSolicitacoes() {
               <td>${s.totalDias} dias</td>
               <td><span class="badge ${s.status}">${s.status}</span>${s.comentarioGestor ? `<div class="hint">${s.comentarioGestor}</div>` : ""}</td>
               <td>${fmtData(s.criadoEm)}</td>
-              <td>${s.status === "aprovado" ? `<button class="btn secundario pequeno" onclick="imprimirComprovante('${s._id}')">Imprimir</button>` : ""}</td>
+              <td>${s.status === "aprovado" ? `<button class="btn secundario pequeno" onclick="imprimirComprovante('${s._id}')">Imprimir pré-aprovação</button>` : ""}</td>
             </tr>
           `
             )
@@ -218,10 +218,21 @@ function imprimirComprovante(id) {
   if (!s) return;
   const janela = window.open("", "_blank");
   janela.document.write(`
-    <html><head><title>Comprovante de Férias</title>
-    <style>body{font-family:Arial,sans-serif;padding:40px;color:#111} h1{font-size:1.3rem} table{border-collapse:collapse;width:100%;margin-top:16px} td,th{border:1px solid #ccc;padding:8px;text-align:left}</style>
+    <html><head><title>Programação de Férias - Pré-aprovada</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:40px;color:#111}
+      h1{font-size:1.3rem;margin-bottom:4px}
+      .aviso{background:#fdf1e1;border:1px solid #e0b370;color:#7a4a08;padding:12px 14px;border-radius:8px;font-size:0.85rem;margin:16px 0}
+      table{border-collapse:collapse;width:100%;margin-top:16px} td,th{border:1px solid #ccc;padding:8px;text-align:left}
+    </style>
     </head><body>
-    <h1>Comprovante de Férias</h1>
+    <h1>Programação de Férias — Pré-aprovada</h1>
+    <p style="color:#555;margin-top:0;">Acordo entre funcionário e gestor</p>
+    <div class="aviso">
+      ⚠️ Este documento <strong>não é um comprovante oficial de férias</strong> e não possui validade como efetividade do gozo.
+      Ele apenas registra a programação combinada entre funcionário e gestor neste sistema. A aprovação final,
+      incluindo o registro efetivo, é de responsabilidade do gerente/RH conforme os processos internos da empresa.
+    </div>
     <p><strong>Funcionário:</strong> ${funcionarioAtual.nome}<br/>
     <strong>CPF:</strong> ${funcionarioAtual.cpf}</p>
     <table>
@@ -235,7 +246,7 @@ function imprimirComprovante(id) {
       </tbody>
     </table>
     <p><strong>Abono pecuniário:</strong> ${s.abonoPecuniarioDias || 0} dias</p>
-    <p><strong>Status:</strong> Aprovado</p>
+    <p><strong>Status:</strong> Pré-aprovada pelo gestor (aguarda efetivação pelo RH/gerente)</p>
     </body></html>
   `);
   janela.document.close();

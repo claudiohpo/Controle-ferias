@@ -47,6 +47,8 @@ async function carregarLista() {
                     s.status === "pendente"
                       ? `<button class="btn sucesso pequeno" onclick="responder('${s._id}','aprovado')">Aprovar</button>
                          <button class="btn erro pequeno" onclick="responder('${s._id}','rejeitado')">Rejeitar</button>`
+                      : s.status === "aprovado"
+                      ? `<button class="btn erro pequeno" onclick="responder('${s._id}','cancelado')">Cancelar</button>`
                       : "-"
                   }
                 </td>
@@ -67,6 +69,10 @@ async function responder(id, status) {
   let comentario = null;
   if (status === "rejeitado") {
     comentario = prompt("Motivo da rejeição (opcional):") || null;
+  }
+  if (status === "cancelado") {
+    if (!confirm("Tem certeza que deseja cancelar estas férias já aprovadas? O funcionário poderá enviar uma nova solicitação depois.")) return;
+    comentario = prompt("Motivo do cancelamento (opcional):") || null;
   }
   try {
     await Api.request(`/api/ferias?id=${id}`, { method: "PATCH", body: { status, comentario } });
