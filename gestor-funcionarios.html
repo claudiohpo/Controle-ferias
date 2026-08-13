@@ -15,8 +15,10 @@
 
     <div class="grid cols-2" style="align-items:start;">
       <div class="card">
-        <h2 style="margin-top:0; font-size:1rem;">Novo funcionário</h2>
+        <h2 style="margin-top:0; font-size:1rem;" id="tituloFormFuncionario">Novo funcionário</h2>
         <form id="formNovo">
+          <input type="hidden" id="funcionarioId" value="" />
+
           <label for="nome">Nome completo</label>
           <input type="text" id="nome" required />
 
@@ -30,7 +32,8 @@
           <input type="text" id="gestorNome" />
 
           <label for="regiao">Região</label>
-          <input type="text" id="regiao" />
+          <input type="text" id="regiao" list="listaRegioesDatalist" required />
+          <datalist id="listaRegioesDatalist"></datalist>
 
           <label for="inicioAquisitivo">Início do período aquisitivo</label>
           <input type="date" id="inicioAquisitivo" required />
@@ -38,16 +41,29 @@
           <label for="diasDireito">Dias de direito</label>
           <input type="number" id="diasDireito" value="30" min="1" max="30" />
 
-          <button type="submit" class="btn" style="margin-top:16px;">Cadastrar</button>
+          <details style="margin-top:16px;">
+            <summary style="cursor:pointer; font-size:0.85rem; color:var(--texto-suave);">Datas informadas pelo RH (opcional — se vazio, o sistema calcula automaticamente)</summary>
+            <label for="fimAquisitivo">Fim do período aquisitivo</label>
+            <input type="date" id="fimAquisitivo" />
+            <label for="limiteInicio">Data limite para início das férias</label>
+            <input type="date" id="limiteInicio" />
+            <label for="limiteProgramacao">Data limite para programação das férias</label>
+            <input type="date" id="limiteProgramacao" />
+          </details>
+
+          <div style="display:flex; gap:10px; margin-top:16px;">
+            <button type="submit" class="btn" id="btnSalvarFuncionario">Cadastrar</button>
+            <button type="button" class="btn secundario" id="btnCancelarEdicao" style="display:none;">Cancelar edição</button>
+          </div>
         </form>
         <div id="msgNovo" class="mensagem"></div>
       </div>
 
       <div class="card">
         <h2 style="margin-top:0; font-size:1rem;">Importação em lote</h2>
-        <p class="hint">Cole uma linha por funcionário, campos separados por ponto e vírgula:<br/>
-        <code>nome;cpf;matricula;gestor;regiao;AAAA-MM-DD</code></p>
-        <textarea id="loteTexto" rows="8" placeholder="Fulano de Tal;12345678900;101795;Cláudio;Grande SP;2025-08-01"></textarea>
+        <p class="hint">Cole uma linha por funcionário, campos separados por ponto e vírgula (os últimos 3 campos são opcionais — se vazios, o sistema calcula automaticamente):<br/>
+        <code>nome;cpf;matricula;gestor;regiao;inicioAquisitivo;fimAquisitivo;limiteInicioFerias;limiteProgramacao</code></p>
+        <textarea id="loteTexto" rows="8" placeholder="Fulano de Tal;12345678900;101795;Cláudio;Grande SP;2025-08-18;2026-08-17;2027-07-17;2027-06-17"></textarea>
         <button type="button" class="btn secundario" id="btnImportar" style="margin-top:12px;">Importar lote</button>
         <div id="msgLote" class="mensagem"></div>
       </div>
@@ -56,7 +72,10 @@
     <div class="card" style="margin-top:20px;">
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
         <h2 style="margin:0; font-size:1rem;">Funcionários cadastrados</h2>
-        <input type="text" id="busca" placeholder="Buscar por nome, CPF ou matrícula" style="max-width:280px;" />
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="busca" placeholder="Buscar por nome, CPF ou matrícula" style="max-width:240px;" />
+          <div id="filtroRegioes"></div>
+        </div>
       </div>
       <div id="listaFuncionarios" style="margin-top:16px;">Carregando...</div>
     </div>
@@ -65,6 +84,7 @@
   <script src="js/theme.js"></script>
   <script src="js/api.js"></script>
   <script src="js/gestor-nav.js"></script>
+  <script src="js/regioes-filtro.js"></script>
   <script src="js/gestor-funcionarios.js"></script>
 </body>
 </html>

@@ -40,6 +40,7 @@ async function main() {
     passwordHash,
     nome: "Administrador Master",
     role: "gestor",
+    regioes: [], // vazio = acesso a todas as regiões
     createdAt: new Date(),
   });
 

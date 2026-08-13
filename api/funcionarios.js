@@ -1,6 +1,7 @@
 const { ObjectId } = require("mongodb");
 const { getDb } = require("../lib/db");
-const { requireRole, verifyToken } = require("../lib/auth");
+const { requireRole, verifyToken, regioesPermitidas } = require("../lib/auth");
+const { calcularDatasPadrao } = require("../lib/clt");
 
 async function readBody(req) {
   if (req.body && Object.keys(req.body).length) return req.body;
@@ -23,24 +24,10 @@ function apenasNumeros(v) {
   return String(v || "").replace(/\D/g, "");
 }
 
-// Calcula período aquisitivo (fim) e data máxima de gozo a partir do início, seguindo a CLT
-// (período aquisitivo de 12 meses + período concessivo de até 12 meses).
-function calcularDatasCLT(inicioStr) {
-  const inicio = new Date(inicioStr);
-  const fimAquisitivo = new Date(inicio);
-  fimAquisitivo.setFullYear(fimAquisitivo.getFullYear() + 1);
-  const dataMaxGozo = new Date(fimAquisitivo);
-  dataMaxGozo.setFullYear(dataMaxGozo.getFullYear() + 1);
-  return {
-    periodoAquisitivoFim: fimAquisitivo.toISOString().slice(0, 10),
-    dataMaxGozo: dataMaxGozo.toISOString().slice(0, 10),
-  };
-}
-
 function montarFuncionario(input) {
   const cpf = apenasNumeros(input.cpf);
   const periodoAquisitivoInicio = input.periodoAquisitivoInicio;
-  const datasCalculadas = calcularDatasCLT(periodoAquisitivoInicio);
+  const padrao = calcularDatasPadrao(periodoAquisitivoInicio);
   return {
     nome: String(input.nome || "").trim(),
     cpf,
@@ -48,11 +35,20 @@ function montarFuncionario(input) {
     gestor: input.gestor ? String(input.gestor).trim() : null,
     regiao: input.regiao ? String(input.regiao).trim() : null,
     periodoAquisitivoInicio,
-    periodoAquisitivoFim: input.periodoAquisitivoFim || datasCalculadas.periodoAquisitivoFim,
-    dataMaxGozo: input.dataMaxGozo || datasCalculadas.dataMaxGozo,
+    // As datas informadas explicitamente pelo RH (manual ou importação) sempre prevalecem;
+    // caso não sejam informadas, usamos o cálculo padrão como sugestão.
+    periodoAquisitivoFim: input.periodoAquisitivoFim || padrao.periodoAquisitivoFim,
+    dataLimiteInicioFerias: input.dataLimiteInicioFerias || padrao.dataLimiteInicioFerias,
+    dataLimiteProgramacao: input.dataLimiteProgramacao || padrao.dataLimiteProgramacao,
     diasDireito: input.diasDireito ? Number(input.diasDireito) : 30,
     updatedAt: new Date(),
   };
+}
+
+// Garante que a região do funcionário está dentro do que o gestor tem permissão de acessar.
+function regiaoPermitida(regioes, regiao) {
+  if (!regioes) return true; // sem restrição (master)
+  return regioes.includes(regiao);
 }
 
 module.exports = async (req, res) => {
@@ -81,11 +77,25 @@ module.exports = async (req, res) => {
       }
 
       // Gestor listando/consultando funcionários
-      if (!requireRole(req, res, "gestor")) return;
+      const payload = requireRole(req, res, "gestor");
+      if (!payload) return;
+      const regioes = regioesPermitidas(payload);
+
+      // Lista de regiões distintas (para popular selects de cadastro/edição).
+      if (q.listaRegioes === "true") {
+        const todas = await funcionarios.distinct("regiao");
+        const filtradas = todas.filter(Boolean).sort();
+        const resultado = regioes ? filtradas.filter((r) => regioes.includes(r)) : filtradas;
+        return res.end(JSON.stringify(resultado));
+      }
 
       if (q.id) {
         try {
           const doc = await funcionarios.findOne({ _id: new ObjectId(q.id) });
+          if (doc && !regiaoPermitida(regioes, doc.regiao)) {
+            res.statusCode = 403;
+            return res.end(JSON.stringify({ error: "Você não tem acesso à região deste funcionário." }));
+          }
           return res.end(JSON.stringify(doc || null));
         } catch {
           res.statusCode = 400;
@@ -101,16 +111,27 @@ module.exports = async (req, res) => {
           { matricula: { $regex: q.busca, $options: "i" } },
         ];
       }
-      if (q.regiao) filter.regiao = q.regiao;
       if (q.gestor) filter.gestor = q.gestor;
 
-      const docs = await funcionarios.find(filter).sort({ nome: 1 }).toArray();
+      // Regiões: interseção entre o que o gestor pode ver e o que ele pediu para filtrar (opcional).
+      const regioesQuery = q.regioes ? String(q.regioes).split(",").filter(Boolean) : null;
+      if (regioes && regioesQuery) {
+        filter.regiao = { $in: regioes.filter((r) => regioesQuery.includes(r)) };
+      } else if (regioes) {
+        filter.regiao = { $in: regioes };
+      } else if (regioesQuery) {
+        filter.regiao = { $in: regioesQuery };
+      }
+
+      const docs = await funcionarios.find(filter).sort({ dataLimiteInicioFerias: 1 }).toArray();
       return res.end(JSON.stringify(docs));
     }
 
     // Criação individual ou importação em lote — somente gestor
     if (req.method === "POST") {
-      if (!requireRole(req, res, "gestor")) return;
+      const payload = requireRole(req, res, "gestor");
+      if (!payload) return;
+      const regioes = regioesPermitidas(payload);
       const body = await readBody(req);
 
       if (Array.isArray(body.lote)) {
@@ -126,9 +147,17 @@ module.exports = async (req, res) => {
               resultados.erros.push(`${item.nome || cpf}: nome ou período aquisitivo ausente.`);
               continue;
             }
+            if (!regiaoPermitida(regioes, item.regiao)) {
+              resultados.erros.push(`${item.nome}: sem permissão para a região "${item.regiao}".`);
+              continue;
+            }
             const doc = montarFuncionario(item);
             const existente = await funcionarios.findOne({ cpf });
             if (existente) {
+              if (!regiaoPermitida(regioes, existente.regiao)) {
+                resultados.erros.push(`${item.nome}: funcionário já existe em região sem sua permissão.`);
+                continue;
+              }
               await funcionarios.updateOne({ _id: existente._id }, { $set: doc });
               resultados.atualizados++;
             } else {
@@ -154,6 +183,10 @@ module.exports = async (req, res) => {
         res.statusCode = 400;
         return res.end(JSON.stringify({ error: "Nome e período aquisitivo de início são obrigatórios." }));
       }
+      if (!regiaoPermitida(regioes, body.regiao)) {
+        res.statusCode = 403;
+        return res.end(JSON.stringify({ error: "Você não tem permissão para cadastrar funcionários nesta região." }));
+      }
       const existente = await funcionarios.findOne({ cpf });
       if (existente) {
         res.statusCode = 409;
@@ -168,7 +201,9 @@ module.exports = async (req, res) => {
 
     // Atualização — somente gestor
     if (req.method === "PUT") {
-      if (!requireRole(req, res, "gestor")) return;
+      const payload = requireRole(req, res, "gestor");
+      if (!payload) return;
+      const regioes = regioesPermitidas(payload);
       const body = await readBody(req);
       if (!body.id) {
         res.statusCode = 400;
@@ -179,6 +214,15 @@ module.exports = async (req, res) => {
         res.statusCode = 404;
         return res.end(JSON.stringify({ error: "Funcionário não encontrado." }));
       }
+      if (!regiaoPermitida(regioes, existente.regiao)) {
+        res.statusCode = 403;
+        return res.end(JSON.stringify({ error: "Você não tem acesso à região deste funcionário." }));
+      }
+      const novaRegiao = body.regiao !== undefined ? body.regiao : existente.regiao;
+      if (!regiaoPermitida(regioes, novaRegiao)) {
+        res.statusCode = 403;
+        return res.end(JSON.stringify({ error: "Você não tem permissão para mover o funcionário para esta região." }));
+      }
       const doc = montarFuncionario({ ...existente, ...body });
       await funcionarios.updateOne({ _id: existente._id }, { $set: doc });
       res.statusCode = 200;
@@ -187,7 +231,9 @@ module.exports = async (req, res) => {
 
     // Remoção — somente gestor
     if (req.method === "DELETE") {
-      if (!requireRole(req, res, "gestor")) return;
+      const payload = requireRole(req, res, "gestor");
+      if (!payload) return;
+      const regioes = regioesPermitidas(payload);
       const q = req.query || {};
       const id = q.id || (req.body && req.body.id);
       if (!id) {
@@ -195,6 +241,15 @@ module.exports = async (req, res) => {
         return res.end(JSON.stringify({ error: "ID obrigatório." }));
       }
       try {
+        const existente = await funcionarios.findOne({ _id: new ObjectId(id) });
+        if (!existente) {
+          res.statusCode = 404;
+          return res.end(JSON.stringify({ error: "Funcionário não encontrado." }));
+        }
+        if (!regiaoPermitida(regioes, existente.regiao)) {
+          res.statusCode = 403;
+          return res.end(JSON.stringify({ error: "Você não tem acesso à região deste funcionário." }));
+        }
         await funcionarios.deleteOne({ _id: new ObjectId(id) });
         return res.end(JSON.stringify({ message: "Funcionário removido." }));
       } catch {

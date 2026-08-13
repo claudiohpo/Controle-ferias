@@ -10,18 +10,41 @@ function somaDiasData(inicioStr, dias) {
   return d.toISOString().slice(0, 10);
 }
 
+let regioesDoGestor = [];
+let regioesFiltroAtual = [];
+
 async function init() {
   if (!renderGestorNav("ferias")) return;
   document.getElementById("filtroStatus").addEventListener("change", carregarLista);
-  await carregarLista();
+
+  try {
+    regioesDoGestor = await Api.request("/api/funcionarios?listaRegioes=true");
+    criarSeletorRegioes(
+      "filtroRegioes",
+      regioesDoGestor,
+      (selecionadas) => {
+        regioesFiltroAtual = selecionadas;
+        carregarLista();
+      },
+      "ferias"
+    );
+  } catch (err) {
+    console.error(err);
+    await carregarLista();
+  }
 }
 
 async function carregarLista() {
   const div = document.getElementById("listaSolicitacoes");
   const status = document.getElementById("filtroStatus").value;
   try {
-    const params = status ? `?status=${status}` : "";
-    const lista = await Api.request(`/api/ferias${params}`);
+    const params = new URLSearchParams();
+    if (status) params.set("status", status);
+    if (regioesFiltroAtual.length && regioesFiltroAtual.length < regioesDoGestor.length) {
+      params.set("regioes", regioesFiltroAtual.join(","));
+    }
+    const query = params.toString();
+    const lista = await Api.request(`/api/ferias${query ? "?" + query : ""}`);
     if (!lista.length) {
       div.innerHTML = `<p class="hint">Nenhuma solicitação encontrada.</p>`;
       return;

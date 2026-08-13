@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestores</title>
+  <link rel="stylesheet" href="css/theme.css" />
+</head>
+<body>
+  <button id="themeToggle" class="theme-toggle" aria-label="Alternar tema">🌙</button>
+
+  <div class="container">
+    <div class="topbar" id="gestorTopbar"></div>
+    <nav class="tabs" id="gestorNav"></nav>
+
+    <div class="card" style="margin-bottom:20px;">
+      <h2 style="margin-top:0; font-size:1rem;" id="tituloFormGestor">Novo gestor</h2>
+      <form id="formGestor">
+        <input type="hidden" id="gestorId" value="" />
+
+        <label for="novoUsuario">Usuário</label>
+        <input type="text" id="novoUsuario" required />
+
+        <label for="novoNome">Nome</label>
+        <input type="text" id="novoNome" />
+
+        <label>Regiões com acesso (nenhuma marcada = acesso a todas)</label>
+        <div class="checkbox-grid" id="regioesCheckboxGrid"></div>
+
+        <label for="novaSenhaGestor" id="labelSenhaGestor">Senha (mín. 6 caracteres)</label>
+        <input type="password" id="novaSenhaGestor" />
+        <label for="confirmarSenhaGestor">Confirmar senha</label>
+        <input type="password" id="confirmarSenhaGestor" />
+        <p class="hint" id="hintSenhaEdicao" style="display:none;">Deixe em branco para manter a senha atual.</p>
+
+        <div style="display:flex; gap:10px; margin-top:16px;">
+          <button type="submit" class="btn" id="btnSalvarGestor">Criar gestor</button>
+          <button type="button" class="btn secundario" id="btnCancelarEdicaoGestor" style="display:none;">Cancelar edição</button>
+        </div>
+      </form>
+      <div id="msgGestor" class="mensagem"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0; font-size:1rem;">Gestores cadastrados</h2>
+      <div id="listaGestores">Carregando...</div>
+    </div>
+  </div>
+
+  <script src="js/theme.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/gestor-nav.js"></script>
+  <script src="js/senha-toggle.js"></script>
+  <script src="js/gestor-gestores.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 const { ObjectId } = require("mongodb");
 const { getDb } = require("../lib/db");
-const { verifyToken, requireRole } = require("../lib/auth");
+const { verifyToken, requireRole, regioesPermitidas } = require("../lib/auth");
 const { validarSolicitacao } = require("../lib/clt");
 
 async function readBody(req) {
@@ -43,6 +43,15 @@ module.exports = async (req, res) => {
       } else if (payload.role === "gestor") {
         if (q.status) filter.status = q.status;
         if (q.funcionarioId) filter.funcionarioId = q.funcionarioId;
+        const regioes = regioesPermitidas(payload);
+        const regioesQuery = q.regioes ? String(q.regioes).split(",").filter(Boolean) : null;
+        if (regioes && regioesQuery) {
+          filter.funcionarioRegiao = { $in: regioes.filter((r) => regioesQuery.includes(r)) };
+        } else if (regioes) {
+          filter.funcionarioRegiao = { $in: regioes };
+        } else if (regioesQuery) {
+          filter.funcionarioRegiao = { $in: regioesQuery };
+        }
       } else {
         res.statusCode = 403;
         return res.end(JSON.stringify({ error: "Acesso não autorizado." }));
@@ -91,6 +100,7 @@ module.exports = async (req, res) => {
         funcionarioId: payload.funcionarioId,
         funcionarioNome: funcionario.nome,
         funcionarioCpf: funcionario.cpf,
+        funcionarioRegiao: funcionario.regiao || null,
         periodos: periodos.map((p) => ({ inicio: p.inicio, dias: Number(p.dias) })),
         abonoPecuniarioDias,
         totalDias: validacao.totalDias,
@@ -105,7 +115,8 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === "PATCH") {
-      if (!requireRole(req, res, "gestor")) return;
+      const payload = requireRole(req, res, "gestor");
+      if (!payload) return;
       const body = await readBody(req);
       const q = req.query || {};
       const id = q.id || body.id;
@@ -124,6 +135,11 @@ module.exports = async (req, res) => {
       if (!existente) {
         res.statusCode = 404;
         return res.end(JSON.stringify({ error: "Solicitação não encontrada." }));
+      }
+      const regioes = regioesPermitidas(payload);
+      if (regioes && !regioes.includes(existente.funcionarioRegiao)) {
+        res.statusCode = 403;
+        return res.end(JSON.stringify({ error: "Você não tem acesso à região deste funcionário." }));
       }
       if (body.status === "cancelado" && !["aprovado", "pendente"].includes(existente.status)) {
         res.statusCode = 400;

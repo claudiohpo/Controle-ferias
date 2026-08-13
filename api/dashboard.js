@@ -1,5 +1,5 @@
 const { getDb } = require("../lib/db");
-const { requireRole } = require("../lib/auth");
+const { requireRole, regioesPermitidas } = require("../lib/auth");
 
 module.exports = async (req, res) => {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -10,25 +10,31 @@ module.exports = async (req, res) => {
   }
 
   try {
-    if (!requireRole(req, res, "gestor")) return;
+    const payload = requireRole(req, res, "gestor");
+    if (!payload) return;
+    const regioes = regioesPermitidas(payload);
+    const filtroFuncionarios = regioes ? { regiao: { $in: regioes } } : {};
+    const filtroSolicitacoes = regioes ? { funcionarioRegiao: { $in: regioes } } : {};
 
     const db = await getDb();
     const funcionarios = db.collection("funcionarios");
     const solicitacoes = db.collection("solicitacoes_ferias");
 
-    const totalFuncionarios = await funcionarios.countDocuments();
-    const pendentes = await solicitacoes.countDocuments({ status: "pendente" });
-    const aprovadas = await solicitacoes.countDocuments({ status: "aprovado" });
-    const rejeitadas = await solicitacoes.countDocuments({ status: "rejeitado" });
-    const canceladas = await solicitacoes.countDocuments({ status: "cancelado" });
+    const totalFuncionarios = await funcionarios.countDocuments(filtroFuncionarios);
+    const pendentes = await solicitacoes.countDocuments({ ...filtroSolicitacoes, status: "pendente" });
+    const aprovadas = await solicitacoes.countDocuments({ ...filtroSolicitacoes, status: "aprovado" });
+    const rejeitadas = await solicitacoes.countDocuments({ ...filtroSolicitacoes, status: "rejeitado" });
+    const canceladas = await solicitacoes.countDocuments({ ...filtroSolicitacoes, status: "cancelado" });
 
-    const comSolicitacao = await solicitacoes.distinct("funcionarioId", { status: { $in: ["pendente", "aprovado"] } });
-    const todosFuncionarios = await funcionarios.find({}, { projection: { nome: 1, cpf: 1, regiao: 1, gestor: 1 } }).toArray();
+    const comSolicitacao = await solicitacoes.distinct("funcionarioId", { ...filtroSolicitacoes, status: { $in: ["pendente", "aprovado"] } });
+    const todosFuncionarios = await funcionarios
+      .find(filtroFuncionarios, { projection: { nome: 1, cpf: 1, regiao: 1, gestor: 1 } })
+      .toArray();
     const semSolicitacao = todosFuncionarios.filter((f) => !comSolicitacao.includes(String(f._id)));
 
     // Períodos aprovados, usados para montar o calendário anual e os gráficos de ocupação.
     const aprovadasDocs = await solicitacoes
-      .find({ status: "aprovado" }, { projection: { funcionarioNome: 1, funcionarioCpf: 1, periodos: 1 } })
+      .find({ ...filtroSolicitacoes, status: "aprovado" }, { projection: { funcionarioNome: 1, funcionarioCpf: 1, periodos: 1 } })
       .toArray();
     const feriasAprovadas = aprovadasDocs.map((s) => ({
       funcionarioNome: s.funcionarioNome,

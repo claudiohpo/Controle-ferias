@@ -16,13 +16,16 @@
     <div class="card">
       <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
         <h2 style="margin:0; font-size:1rem;">Solicitações de férias</h2>
-        <select id="filtroStatus">
-          <option value="">Todos os status</option>
-          <option value="pendente" selected>Pendentes</option>
-          <option value="aprovado">Aprovadas</option>
-          <option value="rejeitado">Rejeitadas</option>
-          <option value="cancelado">Canceladas</option>
-        </select>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <div id="filtroRegioes"></div>
+          <select id="filtroStatus">
+            <option value="">Todos os status</option>
+            <option value="pendente" selected>Pendentes</option>
+            <option value="aprovado">Aprovadas</option>
+            <option value="rejeitado">Rejeitadas</option>
+            <option value="cancelado">Canceladas</option>
+          </select>
+        </div>
       </div>
       <div id="listaSolicitacoes" style="margin-top:16px;">Carregando...</div>
     </div>
@@ -31,6 +34,7 @@
   <script src="js/theme.js"></script>
   <script src="js/api.js"></script>
   <script src="js/gestor-nav.js"></script>
+  <script src="js/regioes-filtro.js"></script>
   <script src="js/gestor-ferias.js"></script>
 </body>
 </html>

@@ -2,15 +2,17 @@ const Api = (function () {
   const TOKEN_KEY = "ferias_token";
   const PERFIL_KEY = "ferias_perfil"; // 'gestor' | 'funcionario'
   const NOME_KEY = "ferias_nome";
+  const REGIOES_KEY = "ferias_regioes";
 
   function getToken() {
     return localStorage.getItem(TOKEN_KEY);
   }
 
-  function setSessao(token, perfil, nome) {
+  function setSessao(token, perfil, nome, regioes) {
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem(PERFIL_KEY, perfil);
     if (nome) localStorage.setItem(NOME_KEY, nome);
+    localStorage.setItem(REGIOES_KEY, JSON.stringify(regioes || []));
   }
 
   function getPerfil() {
@@ -21,10 +23,20 @@ const Api = (function () {
     return localStorage.getItem(NOME_KEY) || "";
   }
 
+  // Retorna as regiões do gestor logado. Array vazio = acesso a todas as regiões.
+  function getRegioes() {
+    try {
+      return JSON.parse(localStorage.getItem(REGIOES_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
   function logout() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(PERFIL_KEY);
     localStorage.removeItem(NOME_KEY);
+    localStorage.removeItem(REGIOES_KEY);
   }
 
   async function request(path, { method = "GET", body, auth = true } = {}) {
@@ -62,5 +74,5 @@ const Api = (function () {
     return true;
   }
 
-  return { request, getToken, setSessao, getPerfil, getNome, logout, exigirPerfil };
+  return { request, getToken, setSessao, getPerfil, getNome, getRegioes, logout, exigirPerfil };
 })();

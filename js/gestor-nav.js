@@ -5,13 +5,17 @@ function renderGestorNav(paginaAtiva) {
     { href: "gestor-dashboard.html", label: "Dashboard", key: "dashboard" },
     { href: "gestor-funcionarios.html", label: "Funcionários", key: "funcionarios" },
     { href: "gestor-ferias.html", label: "Solicitações", key: "ferias" },
+    { href: "gestor-gestores.html", label: "Gestores", key: "gestores" },
     { href: "gestor-config.html", label: "Configurações", key: "config" },
   ];
+
+  const regioes = Api.getRegioes();
+  const regioesTexto = regioes.length ? `Regiões: ${regioes.join(", ")}` : "Acesso a todas as regiões";
 
   document.getElementById("gestorTopbar").innerHTML = `
     <div>
       <h1>🗂️ Painel do Gestor</h1>
-      <div class="sub">Olá, ${Api.getNome()}</div>
+      <div class="sub">Olá, ${Api.getNome()} · ${regioesTexto}</div>
     </div>
     <button class="btn secundario pequeno" id="btnSairGestor">Sair</button>
   `;

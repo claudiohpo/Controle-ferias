@@ -106,20 +106,33 @@ sistema-ferias/
 
 | Rota                | Método | Descrição |
 | -------------------- | ------ | --------- |
-| `/api/auth`          | POST   | `action`: `login-gestor`, `login-funcionario`, `trocar-senha-gestor`, `criar-gestor` |
-| `/api/funcionarios`  | GET    | Lista (gestor) ou dados próprios (`?me=true`, funcionário) |
+| `/api/auth`          | POST   | `action`: `login-gestor`, `login-funcionario`, `trocar-senha-gestor` |
+| `/api/funcionarios`  | GET    | Lista (gestor, filtrada por região), dados próprios (`?me=true`) ou lista de regiões (`?listaRegioes=true`) |
 | `/api/funcionarios`  | POST   | Cria um funcionário, ou importa em lote (`{ lote: [...] }`) |
-| `/api/funcionarios`  | PUT/DELETE | Edita/remove um funcionário (gestor) |
-| `/api/ferias`        | GET    | Lista solicitações (próprias ou todas, conforme o perfil) |
+| `/api/funcionarios`  | PUT/DELETE | Edita/remove um funcionário (gestor, respeitando a região) |
+| `/api/gestores`      | GET    | Lista gestores (sem o hash de senha) |
+| `/api/gestores`      | POST   | Cria um gestor `{ username, password, nome, regioes }` |
+| `/api/gestores`      | PUT    | Edita um gestor `{ id, nome, regioes, novaSenha? }` |
+| `/api/gestores`      | DELETE | Remove um gestor (`?id=...`) |
+| `/api/ferias`        | GET    | Lista solicitações (próprias, ou todas dentro da região do gestor) |
 | `/api/ferias`        | POST   | Funcionário envia uma solicitação de férias |
-| `/api/ferias`        | PATCH  | Gestor aprova/rejeita (`?id=...`, `{ status, comentario }`) |
-| `/api/dashboard`     | GET    | Estatísticas para o gestor |
+| `/api/ferias`        | PATCH  | Gestor aprova/rejeita/cancela (`?id=...`, `{ status: 'aprovado'|'rejeitado'|'cancelado', comentario }`) |
+| `/api/dashboard`     | GET    | Estatísticas para o gestor (filtradas por região) |
 
 ## 📄 Licença
 
 Uso interno / privado.
 
 ## 🆕 Changelog
+
+**v1.2**
+- **Lista de funcionários**: ordenação padrão pelo Prazo Limite (mais próximo primeiro); todas as colunas (Nome, Período Aquisitivo início/fim, Prazo Limite, Matrícula, CPF, Região) agora são clicáveis para ordenar (clique novamente para inverter).
+- **Datas do RH**: o cadastro/importação agora aceita as datas reais informadas pelo RH (fim do aquisitivo, data limite de início e data limite de programação). Quando não informadas, o sistema calcula automaticamente seguindo o padrão observado nas planilhas (fim do aquisitivo = início + 1 ano - 1 dia; limite de início = fim do aquisitivo + 11 meses; limite de programação = limite de início - 1 mês). A solicitação de férias agora também bloqueia o envio após a data limite de programação.
+- **Regiões e permissões de gestor**: cada gestor pode ter uma ou mais regiões vinculadas ao seu cadastro (nenhuma região = acesso a todas). O acesso é validado no backend em todas as rotas (funcionários, solicitações e dashboard), não apenas na interface.
+- **Filtro dinâmico de regiões**: lista suspensa com checkboxes nas telas de Funcionários e Solicitações para escolher quais regiões (dentre as permitidas) visualizar no momento.
+- **CRUD completo de Funcionários**: adicionado botão Editar (o cadastro reaproveita o mesmo formulário de criação).
+- **Nova tela "Gestores"**: CRUD completo de contas de gestor — criar, listar, editar (nome, regiões, redefinir senha) e excluir (com proteção contra remover o último gestor ou a própria conta logada).
+- **Senhas mais seguras na interface**: campo de confirmação de senha e ícone de "olho" para mostrar/ocultar em todos os formulários de senha (login do gestor, trocar senha, criar/editar gestor).
 
 **v1.1**
 - Gestor agora pode **cancelar** uma solicitação já aprovada (novo status `cancelado`), liberando o funcionário para enviar uma nova solicitação.
@@ -130,4 +143,5 @@ Uso interno / privado.
   - Gráfico de barras com a quantidade de funcionários de férias por mês (seletor de ano).
   - **Calendário anual (linha do tempo/Gantt)** com uma linha por funcionário e barras coloridas mostrando os períodos aprovados — permite identificar visualmente sobreposições entre pessoas diferentes.
   - Lista dos **dias com maior concentração de férias** (dias em que 2+ funcionários estarão simultaneamente de férias).
+
 

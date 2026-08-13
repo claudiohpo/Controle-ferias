@@ -40,7 +40,8 @@ function renderInfo() {
     <div class="stat"><div class="valor">${diasDireito}</div><div class="rotulo">Dias de direito</div></div>
     <div class="stat"><div class="valor">${fmtData(funcionarioAtual.periodoAquisitivoInicio)}</div><div class="rotulo">Início do aquisitivo</div></div>
     <div class="stat"><div class="valor">${fmtData(funcionarioAtual.periodoAquisitivoFim)}</div><div class="rotulo">Liberado a partir de</div></div>
-    <div class="stat"><div class="valor">${fmtData(funcionarioAtual.dataMaxGozo)}</div><div class="rotulo">Prazo limite de gozo</div></div>
+    <div class="stat"><div class="valor">${fmtData(funcionarioAtual.dataLimiteInicioFerias)}</div><div class="rotulo">Prazo limite de início</div></div>
+    <div class="stat"><div class="valor">${fmtData(funcionarioAtual.dataLimiteProgramacao)}</div><div class="rotulo">Prazo para programar</div></div>
   `;
 }
 

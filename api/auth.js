@@ -55,9 +55,21 @@ module.exports = async (req, res) => {
         res.statusCode = 401;
         return res.end(JSON.stringify({ error: "Usuário ou senha inválidos." }));
       }
-      const token = signToken({ role: "gestor", username: gestor.username, nome: gestor.nome || gestor.username });
+      const token = signToken({
+        role: "gestor",
+        username: gestor.username,
+        nome: gestor.nome || gestor.username,
+        regioes: Array.isArray(gestor.regioes) ? gestor.regioes : [],
+      });
       res.statusCode = 200;
-      return res.end(JSON.stringify({ token, nome: gestor.nome || gestor.username, username: gestor.username }));
+      return res.end(
+        JSON.stringify({
+          token,
+          nome: gestor.nome || gestor.username,
+          username: gestor.username,
+          regioes: Array.isArray(gestor.regioes) ? gestor.regioes : [],
+        })
+      );
     }
 
     // Login do funcionário via CPF (sem senha, conforme especificação)
@@ -100,37 +112,6 @@ module.exports = async (req, res) => {
       await gestores.updateOne({ _id: gestor._id }, { $set: { passwordHash: novoHash, updatedAt: new Date() } });
       res.statusCode = 200;
       return res.end(JSON.stringify({ message: "Senha atualizada com sucesso." }));
-    }
-
-    // Criar novo gestor (apenas por um gestor já autenticado)
-    if (action === "criar-gestor") {
-      const payload = verifyToken(req);
-      if (!payload || payload.role !== "gestor") {
-        res.statusCode = 401;
-        return res.end(JSON.stringify({ error: "Não autenticado." }));
-      }
-      const { username, password, nome } = body;
-      if (!username || !password || String(password).length < 6) {
-        res.statusCode = 400;
-        return res.end(JSON.stringify({ error: "Informe usuário e senha (mín. 6 caracteres)." }));
-      }
-      const gestores = db.collection("gestores");
-      const usernameNorm = String(username).trim().toLowerCase();
-      const existe = await gestores.findOne({ username: usernameNorm });
-      if (existe) {
-        res.statusCode = 409;
-        return res.end(JSON.stringify({ error: "Já existe um gestor com este usuário." }));
-      }
-      const passwordHash = bcrypt.hashSync(String(password), 12);
-      await gestores.insertOne({
-        username: usernameNorm,
-        passwordHash,
-        nome: nome || usernameNorm,
-        role: "gestor",
-        createdAt: new Date(),
-      });
-      res.statusCode = 201;
-      return res.end(JSON.stringify({ message: "Gestor criado com sucesso." }));
     }
 
     res.statusCode = 400;
