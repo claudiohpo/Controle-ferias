@@ -1,0 +1,120 @@
+# 🏖️ Sistema de Programação de Férias (CLT)
+
+Aplicação completa para funcionários programarem suas férias e gestores aprovarem, seguindo as regras da CLT (período aquisitivo, fracionamento em até 3 períodos e abono pecuniário).
+
+## ✨ Funcionalidades
+
+- Login do funcionário por CPF, sem senha
+- Login do gestor com usuário e senha (hash bcrypt)
+- Validação automática das regras da CLT ao solicitar férias:
+  - Início do gozo somente após 1 ano do período aquisitivo
+  - Prazo limite de gozo (período concessivo)
+  - Fracionamento em até 3 períodos (um com ≥14 dias, demais com ≥5 dias)
+  - Abono pecuniário de até 1/3 dos dias de direito (máx. 10 dias)
+- Painel do gestor: dashboard, CRUD de funcionários, importação em lote e aprovação/rejeição de solicitações
+- Comprovante de férias para impressão após aprovação
+- Interface responsiva (mobile-first) com tema claro/escuro
+
+## 📦 Estrutura do Projeto
+
+```
+sistema-ferias/
+├── api/
+│   ├── auth.js            # Login gestor/funcionário, troca de senha, criar gestor
+│   ├── funcionarios.js    # CRUD de funcionários + importação em lote
+│   ├── ferias.js          # Solicitação, listagem e aprovação/rejeição
+│   └── dashboard.js       # Estatísticas do gestor
+├── lib/
+│   ├── db.js               # Conexão compartilhada com o MongoDB
+│   ├── auth.js              # Geração/validação de JWT
+│   └── clt.js                # Regras de negócio da CLT
+├── css/theme.css            # Tema claro/escuro e estilos globais
+├── js/                       # Lógica de cada página (vanilla JS)
+├── scripts/seed.js          # Cria o usuário gestor master (rodar localmente)
+├── funcionarios_para_importar.csv  # CSV pronto, gerado a partir da sua planilha
+├── index.html, funcionario-*.html, gestor-*.html
+├── package.json / vercel.json / .env.example
+```
+
+## 🚀 Execução local (VSCode)
+
+### Pré-requisitos
+- Node.js 20+
+- Conta MongoDB Atlas (ou MongoDB local)
+- [Vercel CLI](https://vercel.com/docs/cli): `npm i -g vercel`
+
+### Passo a passo
+
+1. Extraia o projeto e abra a pasta no VSCode.
+2. Instale as dependências:
+   ```
+   npm install
+   ```
+3. Copie `.env.example` para `.env` e preencha:
+   ```
+   MONGODB_URI="mongodb+srv://usuario:senha@cluster.mongodb.net/"
+   DB_NAME="ferias_stf"
+   JWT_SECRET="uma-string-longa-e-aleatoria"
+   ```
+4. Exporte as variáveis no terminal (ou use um plugin como `dotenv-cli`) e crie o usuário gestor master:
+   ```
+   set -a; source .env; set +a
+   npm run seed
+   ```
+   Isso imprime no terminal o usuário e a senha gerada — guarde essa senha, você poderá trocá-la depois em **Configurações**.
+5. Rode o projeto localmente com o CLI da Vercel (simula as funções serverless de `/api`):
+   ```
+   npx vercel dev
+   ```
+6. Abra `http://localhost:3000`.
+
+> Dica: para importar os funcionários da sua planilha, abra `gestor-funcionarios.html`, cole o conteúdo do arquivo `funcionarios_para_importar.csv` (sem a linha de cabeçalho, trocando `;` conforme necessário) na caixa de **Importação em lote**. **Atenção:** a planilha original não possui CPF — foi deixado em branco no CSV gerado; edite antes de importar (o CPF é a chave de login do funcionário) ou cadastre manualmente.
+
+## 🔧 Variáveis de Ambiente
+
+| Variável       | Obrigatório | Descrição                                  | Exemplo                                |
+| -------------- | ----------- | ------------------------------------------- | --------------------------------------- |
+| `MONGODB_URI`  | ✅          | String de conexão do MongoDB                | `mongodb+srv://user:senha@cluster/...`  |
+| `DB_NAME`      | ⛔️ (default `ferias_stf`) | Banco usado por todas as coleções | `ferias_stf`                            |
+| `JWT_SECRET`   | ✅ (em produção) | Segredo para assinar os tokens de login | string aleatória longa                  |
+
+## 🌐 Deploy na Vercel (via GitHub)
+
+1. Crie um repositório novo no GitHub e suba este projeto:
+   ```
+   git init
+   git add .
+   git commit -m "Sistema de férias inicial"
+   git branch -M main
+   git remote add origin https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
+   git push -u origin main
+   ```
+2. No [painel da Vercel](https://vercel.com/new), clique em **Import Project** e selecione o repositório recém-criado.
+3. Em **Environment Variables**, adicione `MONGODB_URI`, `DB_NAME` e `JWT_SECRET` (os mesmos valores do seu `.env`).
+   - Se preferir, use a **integração nativa do MongoDB Atlas com a Vercel** (marketplace de integrações) para preencher `MONGODB_URI` automaticamente.
+4. Clique em **Deploy**. A cada `git push` na branch `main`, a Vercel fará um novo deploy automaticamente.
+5. Após o primeiro deploy, rode `npm run seed` (localmente, apontando para o mesmo `MONGODB_URI` de produção) para criar o gestor master — esse script **não** é exposto como rota pública, por segurança.
+
+## 🔒 Segurança
+
+- Senhas de gestores armazenadas com hash `bcrypt`.
+- Autenticação via JWT (`Authorization: Bearer <token>`), válido por 12h.
+- Rotas de funcionários/férias/aprovação exigem token de gestor; funcionário só acessa e altera seus próprios dados.
+- Nenhuma rota de criação do usuário master é exposta publicamente — o script `scripts/seed.js` roda apenas localmente/via terminal.
+
+## 📋 API Endpoints (resumo)
+
+| Rota                | Método | Descrição |
+| -------------------- | ------ | --------- |
+| `/api/auth`          | POST   | `action`: `login-gestor`, `login-funcionario`, `trocar-senha-gestor`, `criar-gestor` |
+| `/api/funcionarios`  | GET    | Lista (gestor) ou dados próprios (`?me=true`, funcionário) |
+| `/api/funcionarios`  | POST   | Cria um funcionário, ou importa em lote (`{ lote: [...] }`) |
+| `/api/funcionarios`  | PUT/DELETE | Edita/remove um funcionário (gestor) |
+| `/api/ferias`        | GET    | Lista solicitações (próprias ou todas, conforme o perfil) |
+| `/api/ferias`        | POST   | Funcionário envia uma solicitação de férias |
+| `/api/ferias`        | PATCH  | Gestor aprova/rejeita (`?id=...`, `{ status, comentario }`) |
+| `/api/dashboard`     | GET    | Estatísticas para o gestor |
+
+## 📄 Licença
+
+Uso interno / privado.

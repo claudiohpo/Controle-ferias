@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Funcionários - Gestor</title>
+  <link rel="stylesheet" href="css/theme.css" />
+</head>
+<body>
+  <button id="themeToggle" class="theme-toggle" aria-label="Alternar tema">🌙</button>
+
+  <div class="container">
+    <div class="topbar" id="gestorTopbar"></div>
+    <nav class="tabs" id="gestorNav"></nav>
+
+    <div class="grid cols-2" style="align-items:start;">
+      <div class="card">
+        <h2 style="margin-top:0; font-size:1rem;">Novo funcionário</h2>
+        <form id="formNovo">
+          <label for="nome">Nome completo</label>
+          <input type="text" id="nome" required />
+
+          <label for="cpf">CPF (somente números)</label>
+          <input type="text" id="cpf" maxlength="14" required />
+
+          <label for="matricula">Matrícula</label>
+          <input type="text" id="matricula" />
+
+          <label for="gestorNome">Gestor responsável</label>
+          <input type="text" id="gestorNome" />
+
+          <label for="regiao">Região</label>
+          <input type="text" id="regiao" />
+
+          <label for="inicioAquisitivo">Início do período aquisitivo</label>
+          <input type="date" id="inicioAquisitivo" required />
+
+          <label for="diasDireito">Dias de direito</label>
+          <input type="number" id="diasDireito" value="30" min="1" max="30" />
+
+          <button type="submit" class="btn" style="margin-top:16px;">Cadastrar</button>
+        </form>
+        <div id="msgNovo" class="mensagem"></div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0; font-size:1rem;">Importação em lote</h2>
+        <p class="hint">Cole uma linha por funcionário, campos separados por ponto e vírgula:<br/>
+        <code>nome;cpf;matricula;gestor;regiao;AAAA-MM-DD</code></p>
+        <textarea id="loteTexto" rows="8" placeholder="Fulano de Tal;12345678900;101795;Cláudio;Grande SP;2025-08-01"></textarea>
+        <button type="button" class="btn secundario" id="btnImportar" style="margin-top:12px;">Importar lote</button>
+        <div id="msgLote" class="mensagem"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+        <h2 style="margin:0; font-size:1rem;">Funcionários cadastrados</h2>
+        <input type="text" id="busca" placeholder="Buscar por nome, CPF ou matrícula" style="max-width:280px;" />
+      </div>
+      <div id="listaFuncionarios" style="margin-top:16px;">Carregando...</div>
+    </div>
+  </div>
+
+  <script src="js/theme.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/gestor-nav.js"></script>
+  <script src="js/gestor-funcionarios.js"></script>
+</body>
+</html>

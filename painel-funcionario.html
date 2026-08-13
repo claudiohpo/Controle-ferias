@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minhas Férias</title>
+  <link rel="stylesheet" href="css/theme.css" />
+</head>
+<body>
+  <button id="themeToggle" class="theme-toggle" aria-label="Alternar tema">🌙</button>
+
+  <div class="container">
+    <div class="topbar">
+      <div>
+        <h1>🏖️ Minhas Férias</h1>
+        <div class="sub" id="saudacao">Carregando...</div>
+      </div>
+      <button class="btn secundario pequeno" id="btnSair">Sair</button>
+    </div>
+
+    <div class="card" id="cardInfo" style="margin-bottom:20px;">
+      <h2 style="margin-top:0; font-size:1rem;">Meus dados</h2>
+      <div class="grid cols-4" id="infoGrid"></div>
+    </div>
+
+    <div id="areaSolicitacao"></div>
+
+    <div class="card" style="margin-top:20px;">
+      <h2 style="margin-top:0; font-size:1rem;">Minhas solicitações</h2>
+      <div id="listaSolicitacoes">Carregando...</div>
+    </div>
+
+    <footer class="rodape">Sistema de Férias &middot; Regras conforme CLT (Art. 130, 134 e 143)</footer>
+  </div>
+
+  <script src="js/theme.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/funcionario.js"></script>
+</body>
+</html>

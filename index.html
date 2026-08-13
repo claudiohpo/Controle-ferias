@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Férias</title>
+  <link rel="stylesheet" href="css/theme.css" />
+  <style>
+    .portal {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .opcoes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 640px;
+      width: 100%;
+    }
+    .opcao {
+      text-decoration: none;
+      color: var(--texto);
+      text-align: center;
+      padding: 36px 20px;
+    }
+    .opcao .icone {
+      font-size: 2.4rem;
+      margin-bottom: 10px;
+    }
+    .opcao h2 {
+      margin: 6px 0;
+      font-size: 1.1rem;
+    }
+    .opcao p {
+      color: var(--texto-suave);
+      font-size: 0.85rem;
+      margin: 0;
+    }
+    @media (max-width: 520px) {
+      .opcoes {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button id="themeToggle" class="theme-toggle" aria-label="Alternar tema">🌙</button>
+
+  <div class="portal">
+    <div style="width:100%; max-width:640px;">
+      <div style="text-align:center; margin-bottom:28px;">
+        <h1 style="margin-bottom:4px;">🏖️ Sistema de Férias</h1>
+        <p style="color:var(--texto-suave)">Programação e aprovação de férias conforme a CLT</p>
+      </div>
+      <div class="opcoes">
+        <a class="opcao card" href="funcionario-login.html">
+          <div class="icone">🙋</div>
+          <h2>Sou Funcionário</h2>
+          <p>Acessar com CPF para programar minhas férias</p>
+        </a>
+        <a class="opcao card" href="gestor-login.html">
+          <div class="icone">🗂️</div>
+          <h2>Sou Gestor</h2>
+          <p>Login com usuário e senha para gerenciar a equipe</p>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/theme.js"></script>
+</body>
+</html>

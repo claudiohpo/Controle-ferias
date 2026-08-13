@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acesso do Gestor</title>
+  <link rel="stylesheet" href="css/theme.css" />
+  <style>
+    .login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 380px;
+    }
+    .voltar {
+      display: inline-block;
+      margin-top: 18px;
+      font-size: 0.85rem;
+      text-decoration: none;
+      color: var(--texto-suave);
+    }
+  </style>
+</head>
+<body>
+  <button id="themeToggle" class="theme-toggle" aria-label="Alternar tema">🌙</button>
+
+  <div class="login-wrap">
+    <div class="login-card card">
+      <h1 style="font-size:1.2rem; margin-top:0;">🗂️ Acesso do Gestor</h1>
+      <p style="color:var(--texto-suave); font-size:0.88rem;">Entre com seu usuário e senha.</p>
+
+      <form id="formLogin">
+        <label for="username">Usuário</label>
+        <input type="text" id="username" required autocomplete="username" />
+        <label for="password">Senha</label>
+        <input type="password" id="password" required autocomplete="current-password" />
+        <button type="submit" class="btn" style="width:100%; margin-top:20px;">Entrar</button>
+      </form>
+
+      <div id="msg" class="mensagem"></div>
+
+      <a class="voltar" href="index.html">&larr; Voltar</a>
+    </div>
+  </div>
+
+  <script src="js/theme.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    document.getElementById("formLogin").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById("msg");
+      msg.className = "mensagem";
+      try {
+        const data = await Api.request("/api/auth", {
+          method: "POST",
+          auth: false,
+          body: {
+            action: "login-gestor",
+            username: document.getElementById("username").value,
+            password: document.getElementById("password").value,
+          },
+        });
+        Api.setSessao(data.token, "gestor", data.nome);
+        window.location.href = "gestor-dashboard.html";
+      } catch (err) {
+        msg.className = "mensagem erro";
+        msg.textContent = err.message || "Não foi possível entrar.";
+      }
+    });
+  </script>
+</body>
+</html>

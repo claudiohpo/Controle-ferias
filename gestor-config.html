@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurações - Gestor</title>
+  <link rel="stylesheet" href="css/theme.css" />
+</head>
+<body>
+  <button id="themeToggle" class="theme-toggle" aria-label="Alternar tema">🌙</button>
+
+  <div class="container">
+    <div class="topbar" id="gestorTopbar"></div>
+    <nav class="tabs" id="gestorNav"></nav>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <h2 style="margin-top:0; font-size:1rem;">Trocar minha senha</h2>
+        <form id="formSenha">
+          <label for="senhaAtual">Senha atual</label>
+          <input type="password" id="senhaAtual" required />
+          <label for="novaSenha">Nova senha (mín. 6 caracteres)</label>
+          <input type="password" id="novaSenha" minlength="6" required />
+          <button type="submit" class="btn" style="margin-top:16px;">Atualizar senha</button>
+        </form>
+        <div id="msgSenha" class="mensagem"></div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-top:0; font-size:1rem;">Criar novo gestor</h2>
+        <form id="formGestor">
+          <label for="novoUsuario">Usuário</label>
+          <input type="text" id="novoUsuario" required />
+          <label for="novoNome">Nome</label>
+          <input type="text" id="novoNome" />
+          <label for="novaSenhaGestor">Senha (mín. 6 caracteres)</label>
+          <input type="password" id="novaSenhaGestor" minlength="6" required />
+          <button type="submit" class="btn" style="margin-top:16px;">Criar gestor</button>
+        </form>
+        <div id="msgGestor" class="mensagem"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/theme.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/gestor-nav.js"></script>
+  <script>
+    if (renderGestorNav("config")) {
+      document.getElementById("formSenha").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById("msgSenha");
+        msg.className = "mensagem";
+        try {
+          await Api.request("/api/auth", {
+            method: "POST",
+            body: {
+              action: "trocar-senha-gestor",
+              senhaAtual: document.getElementById("senhaAtual").value,
+              novaSenha: document.getElementById("novaSenha").value,
+            },
+          });
+          msg.className = "mensagem sucesso";
+          msg.textContent = "Senha atualizada com sucesso.";
+          document.getElementById("formSenha").reset();
+        } catch (err) {
+          msg.className = "mensagem erro";
+          msg.textContent = err.message;
+        }
+      });
+
+      document.getElementById("formGestor").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById("msgGestor");
+        msg.className = "mensagem";
+        try {
+          await Api.request("/api/auth", {
+            method: "POST",
+            body: {
+              action: "criar-gestor",
+              username: document.getElementById("novoUsuario").value,
+              nome: document.getElementById("novoNome").value,
+              password: document.getElementById("novaSenhaGestor").value,
+            },
+          });
+          msg.className = "mensagem sucesso";
+          msg.textContent = "Gestor criado com sucesso.";
+          document.getElementById("formGestor").reset();
+        } catch (err) {
+          msg.className = "mensagem erro";
+          msg.textContent = err.message;
+        }
+      });
+    }
+  </script>
+</body>
+</html>
