@@ -87,7 +87,7 @@ function renderTabela() {
     <div class="table-wrap">
       <table class="tabela-resizavel" id="tabelaFerias">
         <thead>
-          <tr><th>Funcionário</th><th>Períodos</th><th>Abono</th><th>Status</th><th>Enviado em</th><th class="nao-redimensionavel">Ações</th></tr>
+          <tr><th>Funcionário</th><th>Períodos</th><th>Abono</th><th>13º adiantado</th><th>Status</th><th>Enviado em</th><th class="nao-redimensionavel">Ações</th></tr>
         </thead>
         <tbody>
           ${lista
@@ -97,6 +97,7 @@ function renderTabela() {
               <td title="${s.funcionarioNome}">${s.funcionarioNome}<br/><span class="hint">${s.funcionarioCpf}</span></td>
               <td>${s.periodos.map((p) => `${fmtData(p.inicio)} a ${fmtData(somaDiasData(p.inicio, p.dias))} (${p.dias}d)`).join("<br/>")}</td>
               <td>${s.abonoPecuniarioDias || 0} dias</td>
+              <td>${s.adiantar13 ? `🎁 Período ${s.periodoAdiantamento13}` : "-"}</td>
               <td><span class="badge ${s.status}">${s.status}</span>${s.comentarioGestor ? `<div class="hint">${s.comentarioGestor}</div>` : ""}</td>
               <td>${fmtData(s.criadoEm)}</td>
               <td>

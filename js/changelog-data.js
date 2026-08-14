@@ -3,6 +3,22 @@
 // for atendida, uma nova entrada deve ser adicionada ao topo desta lista.
 const HISTORICO_VERSOES = [
   {
+    versao: "1.7",
+    data: "2026-08-14",
+    mudancas: {
+      adicionado: [
+        "Opção de adiantamento da 1ª parcela do 13º salário junto com as férias (Lei 4.749/1965), vinculada a um dos até 3 períodos escolhidos.",
+        "No formulário de solicitação do funcionário: checkbox para pedir o adiantamento + seleção de qual período recebe o benefício.",
+        "Coluna '13º adiantado' nas listas de solicitações do funcionário e do gestor, mostrando o período vinculado.",
+        "Documento de pré-aprovação impresso pelo funcionário agora informa se há adiantamento do 13º e em qual período.",
+        "Relatório exportável (PDF/Excel) agora inclui a coluna '1ª parcela do 13º', marcando exatamente o período em que o pagamento deve ser antecipado — pronto para o RH processar a folha.",
+      ],
+      alterado: [
+        "A opção de adiantar o 13º só fica disponível para marcação em janeiro do ano em que o período escolhido começa (regra legal); fora dessa janela, o campo aparece desabilitado com explicação.",
+      ],
+    },
+  },
+  {
     versao: "1.6",
     data: "2026-08-14",
     mudancas: {

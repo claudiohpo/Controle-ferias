@@ -77,6 +77,8 @@ module.exports = async (req, res) => {
 
       const periodos = Array.isArray(body.periodos) ? body.periodos : [];
       const abonoPecuniarioDias = Number(body.abonoPecuniarioDias || 0);
+      const adiantar13 = !!body.adiantar13;
+      const periodoAdiantamento13 = adiantar13 ? Number(body.periodoAdiantamento13) : null;
 
       // Bloqueia nova solicitação se já existir uma pendente ou aprovada para este funcionário.
       const existente = await solicitacoes.findOne({
@@ -90,7 +92,7 @@ module.exports = async (req, res) => {
         );
       }
 
-      const validacao = validarSolicitacao(funcionario, periodos, abonoPecuniarioDias);
+      const validacao = validarSolicitacao(funcionario, periodos, abonoPecuniarioDias, { adiantar13, periodoAdiantamento13 });
       if (!validacao.valid) {
         res.statusCode = 400;
         return res.end(JSON.stringify({ error: validacao.error }));
@@ -105,6 +107,8 @@ module.exports = async (req, res) => {
         funcionarioGestor: funcionario.gestor || null,
         periodos: periodos.map((p) => ({ inicio: p.inicio, dias: Number(p.dias) })),
         abonoPecuniarioDias,
+        adiantar13,
+        periodoAdiantamento13,
         totalDias: validacao.totalDias,
         status: "pendente",
         comentarioGestor: null,

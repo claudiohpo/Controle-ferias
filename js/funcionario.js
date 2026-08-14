@@ -67,6 +67,7 @@ function linhaPeriodo(numero) {
 function renderFormularioSolicitacao() {
   const diasDireito = funcionarioAtual.diasDireito || 30;
   const abonoMax = Math.min(10, Math.floor(diasDireito / 3));
+  const estamosEmJaneiro = new Date().getMonth() === 0;
 
   const area = document.getElementById("areaSolicitacao");
   area.innerHTML = `
@@ -82,6 +83,24 @@ function renderFormularioSolicitacao() {
         <input type="number" id="abono" min="0" max="${abonoMax}" placeholder="0" value="" />
 
         <p class="hint" id="resumoDias"></p>
+
+        <div style="margin-top:18px; padding:14px; border:1px solid var(--borda); border-radius:8px;">
+          <label style="display:flex; align-items:flex-start; gap:8px; margin-top:0; cursor:${estamosEmJaneiro ? "pointer" : "not-allowed"};">
+            <input type="checkbox" id="chk13" style="width:auto; margin-top:3px;" ${estamosEmJaneiro ? "" : "disabled"} />
+            <span>Quero adiantar a <strong>1ª parcela do 13º salário</strong> junto com um dos períodos de férias (Lei 4.749/1965).</span>
+          </label>
+          <div id="areaPeriodo13" style="display:none; margin-top:10px;">
+            <label for="periodo13">Em qual período?</label>
+            <select id="periodo13"></select>
+          </div>
+          <p class="hint" style="margin-top:8px;">
+            ${
+              estamosEmJaneiro
+                ? "Por lei, esse pedido só pode ser feito em janeiro do ano em que o período escolhido começa."
+                : "⚠️ Disponível apenas em janeiro do ano em que as férias vão começar — fora dessa janela, a opção fica bloqueada por lei."
+            }
+          </p>
+        </div>
 
         <button type="submit" class="btn" style="margin-top:16px;">Enviar solicitação</button>
       </form>
@@ -106,6 +125,13 @@ function renderFormularioSolicitacao() {
     document.getElementById("btnAddPeriodo").style.display = contadorPeriodos >= 3 ? "none" : "inline-flex";
   }
 
+  function atualizarSelectPeriodo13() {
+    const select = document.getElementById("periodo13");
+    const valorAtual = select.value;
+    select.innerHTML = Array.from({ length: contadorPeriodos }, (_, i) => `<option value="${i + 1}">Período ${i + 1}</option>`).join("");
+    if (valorAtual && Number(valorAtual) <= contadorPeriodos) select.value = valorAtual;
+  }
+
   container.addEventListener("input", atualizarResumo);
   container.addEventListener("click", (e) => {
     if (e.target.classList.contains("btn-remover")) {
@@ -119,6 +145,12 @@ function renderFormularioSolicitacao() {
   document.getElementById("btnAddPeriodo").addEventListener("click", addPeriodo);
   document.getElementById("abono").addEventListener("input", atualizarResumo);
 
+  const chk13 = document.getElementById("chk13");
+  chk13.addEventListener("change", () => {
+    document.getElementById("areaPeriodo13").style.display = chk13.checked ? "block" : "none";
+    if (chk13.checked) atualizarSelectPeriodo13();
+  });
+
   function atualizarResumo() {
     const dias = Array.from(container.querySelectorAll(".input-dias")).map((i) => Number(i.value || 0));
     const somaPeriodos = dias.reduce((a, b) => a + b, 0);
@@ -128,6 +160,7 @@ function renderFormularioSolicitacao() {
     resumo.textContent = `Dias nos períodos: ${somaPeriodos} · Abono: ${abono} · ${
       restante === 0 ? "Total confere com seus dias de direito ✅" : `Faltam alocar ${restante} dia(s) para totalizar ${diasDireito}`
     }`;
+    if (chk13.checked) atualizarSelectPeriodo13();
   }
 
   addPeriodo();
@@ -143,11 +176,13 @@ function renderFormularioSolicitacao() {
       dias: Number(linha.querySelector(".input-dias").value),
     }));
     const abonoPecuniarioDias = Number(document.getElementById("abono").value || 0);
+    const adiantar13 = document.getElementById("chk13").checked;
+    const periodoAdiantamento13 = adiantar13 ? Number(document.getElementById("periodo13").value) : undefined;
 
     try {
       await Api.request("/api/ferias", {
         method: "POST",
-        body: { periodos, abonoPecuniarioDias },
+        body: { periodos, abonoPecuniarioDias, adiantar13, periodoAdiantamento13 },
       });
       msg.className = "mensagem sucesso";
       msg.textContent = "Solicitação enviada com sucesso! Aguarde a aprovação do seu gestor.";
@@ -189,7 +224,7 @@ async function renderSolicitacoes() {
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>Períodos</th><th>Abono</th><th>Total</th><th>Status</th><th>Enviado em</th><th></th></tr>
+          <tr><th>Períodos</th><th>Abono</th><th>13º adiantado</th><th>Total</th><th>Status</th><th>Enviado em</th><th></th></tr>
         </thead>
         <tbody>
           ${solicitacoes
@@ -198,6 +233,7 @@ async function renderSolicitacoes() {
             <tr>
               <td>${s.periodos.map((p) => `${fmtData(p.inicio)} a ${fmtData(somaDiasData(p.inicio, p.dias))} (${p.dias}d)`).join("<br/>")}</td>
               <td>${s.abonoPecuniarioDias || 0} dias</td>
+              <td>${s.adiantar13 ? `🎁 Período ${s.periodoAdiantamento13}` : "-"}</td>
               <td>${s.totalDias} dias</td>
               <td><span class="badge ${s.status}">${s.status}</span>${s.comentarioGestor ? `<div class="hint">${s.comentarioGestor}</div>` : ""}</td>
               <td>${fmtData(s.criadoEm)}</td>
@@ -237,16 +273,22 @@ function imprimirComprovante(id) {
     <p><strong>Funcionário:</strong> ${funcionarioAtual.nome}<br/>
     <strong>CPF:</strong> ${funcionarioAtual.cpf}</p>
     <table>
-      <thead><tr><th>Período</th><th>Início</th><th>Fim</th><th>Dias</th></tr></thead>
+      <thead><tr><th>Período</th><th>Início</th><th>Fim</th><th>Dias</th><th>1ª parcela do 13º</th></tr></thead>
       <tbody>
         ${s.periodos
           .map(
-            (p, i) => `<tr><td>${i + 1}</td><td>${fmtData(p.inicio)}</td><td>${fmtData(somaDiasData(p.inicio, p.dias))}</td><td>${p.dias}</td></tr>`
+            (p, i) =>
+              `<tr><td>${i + 1}</td><td>${fmtData(p.inicio)}</td><td>${fmtData(somaDiasData(p.inicio, p.dias))}</td><td>${p.dias}</td><td>${
+                s.adiantar13 && s.periodoAdiantamento13 === i + 1 ? "Sim" : "-"
+              }</td></tr>`
           )
           .join("")}
       </tbody>
     </table>
     <p><strong>Abono pecuniário:</strong> ${s.abonoPecuniarioDias || 0} dias</p>
+    <p><strong>Adiantamento da 1ª parcela do 13º salário:</strong> ${
+      s.adiantar13 ? `Sim, vinculado ao período ${s.periodoAdiantamento13} (Lei 4.749/1965)` : "Não solicitado"
+    }</p>
     <p><strong>Status:</strong> Pré-aprovada pelo gestor (aguarda efetivação pelo RH/gerente)</p>
     </body></html>
   `);

@@ -1,6 +1,6 @@
 # 🏖️ Sistema de Programação de Férias (CLT)
 
-Aplicação completa para funcionários programarem suas férias e gestores aprovarem, seguindo as regras da CLT (período aquisitivo, fracionamento em até 3 períodos e abono pecuniário).
+Aplicação completa para funcionários programarem suas férias e gestores aprovarem, seguindo as regras da CLT (período aquisitivo, fracionamento em até 3 períodos, abono pecuniário e adiantamento da 1ª parcela do 13º salário).
 
 ## ✨ Funcionalidades
 
@@ -11,6 +11,7 @@ Aplicação completa para funcionários programarem suas férias e gestores apro
   - Prazo limite de gozo (período concessivo)
   - Fracionamento em até 3 períodos (um com ≥14 dias, demais com ≥5 dias)
   - Abono pecuniário de até 1/3 dos dias de direito (máx. 10 dias)
+  - Adiantamento da 1ª parcela do 13º salário vinculado a um dos períodos (somente em janeiro do ano do período)
 - Painel do gestor: dashboard, CRUD de funcionários, importação em lote e aprovação/rejeição de solicitações
 - Comprovante de férias para impressão após aprovação
 - Interface responsiva (mobile-first) com tema claro/escuro
@@ -132,6 +133,10 @@ sistema-ferias/
 Uso interno / privado.
 
 ## 🆕 Changelog
+
+**v1.7**
+- **Adiantamento da 1ª parcela do 13º salário nas férias** (Lei 4.749/1965), implementado em todo o fluxo: o funcionário marca a opção no formulário de solicitação e escolhe a qual dos até 3 períodos ela está vinculada; a informação aparece na lista de solicitações do funcionário e do gestor, no documento de pré-aprovação impresso e no relatório exportável (PDF/Excel) — com uma coluna dedicada indicando exatamente qual período deve disparar o pagamento antecipado.
+- Por exigência legal, a opção só pode ser marcada em **janeiro do ano em que o período escolhido começa**; fora dessa janela, o campo aparece desabilitado com a explicação, e o backend também valida essa regra (não depende só da interface).
 
 **v1.6**
 - **Exportação de relatórios** na tela de Solicitações: botão "📤 Exportar relatório" abre um modal para escolher um ou mais status (Pendente, Aprovado, Rejeitado, Cancelado) e gerar em **PDF** ou **Excel (.xlsx)**.
