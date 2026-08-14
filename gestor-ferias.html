@@ -31,9 +31,43 @@
             <option value="rejeitado">Rejeitadas</option>
             <option value="cancelado">Canceladas</option>
           </select>
+          <button type="button" class="btn secundario pequeno" id="btnAbrirExportar">📤 Exportar relatório</button>
         </div>
       </div>
       <div id="listaSolicitacoes" style="margin-top:16px;">Carregando...</div>
+    </div>
+  </div>
+
+  <!-- Modal: Exportar relatório -->
+  <div class="modal-overlay" id="modalExportar" hidden>
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>📤 Exportar relatório de férias</h2>
+        <button class="modal-fechar" data-fechar-modal aria-label="Fechar">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="hint">
+          Escolha quais status entram no relatório. O relatório traz uma linha por período de férias
+          (funcionário, CPF, matrícula, região, gestor, datas, dias e abono) — pronto para efetivar a
+          programação junto ao RH. O filtro de região da tela também é aplicado à exportação.
+        </p>
+        <div class="checkbox-grid" id="statusExportarGrid">
+          <label><input type="checkbox" value="pendente" checked /> <span>Pendente</span></label>
+          <label><input type="checkbox" value="aprovado" checked /> <span>Aprovado</span></label>
+          <label><input type="checkbox" value="rejeitado" checked /> <span>Rejeitado</span></label>
+          <label><input type="checkbox" value="cancelado" checked /> <span>Cancelado</span></label>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button type="button" class="btn secundario pequeno" id="btnExportarTodos">Selecionar todos</button>
+          <button type="button" class="btn secundario pequeno" id="btnExportarNenhum">Limpar</button>
+        </div>
+        <div id="msgExportar" class="mensagem"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn secundario" data-fechar-modal>Cancelar</button>
+        <button type="button" class="btn secundario" id="btnGerarExcel">📊 Gerar Excel</button>
+        <button type="button" class="btn" id="btnGerarPDF">📄 Gerar PDF</button>
+      </div>
     </div>
   </div>
 
@@ -44,6 +78,10 @@
   <script src="js/gestor-nav.js"></script>
   <script src="js/regioes-filtro.js"></script>
   <script src="js/tabela-resizavel.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="js/exportar-relatorio.js"></script>
   <script src="js/gestor-ferias.js"></script>
 </body>
 </html>

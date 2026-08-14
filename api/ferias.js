@@ -101,6 +101,8 @@ module.exports = async (req, res) => {
         funcionarioNome: funcionario.nome,
         funcionarioCpf: funcionario.cpf,
         funcionarioRegiao: funcionario.regiao || null,
+        funcionarioMatricula: funcionario.matricula || null,
+        funcionarioGestor: funcionario.gestor || null,
         periodos: periodos.map((p) => ({ inicio: p.inicio, dias: Number(p.dias) })),
         abonoPecuniarioDias,
         totalDias: validacao.totalDias,

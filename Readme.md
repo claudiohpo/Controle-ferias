@@ -104,6 +104,8 @@ sistema-ferias/
 - Rotas de funcionários/férias/aprovação exigem token de gestor; funcionário só acessa e altera seus próprios dados.
 - Nenhuma rota de criação do usuário master é exposta publicamente — o script `scripts/seed.js` roda apenas localmente/via terminal.
 
+> **Nota sobre a exportação de relatórios:** a geração de PDF e Excel usa as bibliotecas SheetJS e jsPDF carregadas via CDN (cdnjs.cloudflare.com) na tela de Solicitações. Isso exige que o navegador do usuário tenha acesso à internet; se a empresa usa um proxy/firewall que bloqueia CDNs externos, essas duas bibliotecas precisarão ser baixadas e servidas localmente pelo projeto.
+
 ## 📋 API Endpoints (resumo)
 
 | Rota                | Método | Descrição |
@@ -130,6 +132,12 @@ sistema-ferias/
 Uso interno / privado.
 
 ## 🆕 Changelog
+
+**v1.6**
+- **Exportação de relatórios** na tela de Solicitações: botão "📤 Exportar relatório" abre um modal para escolher um ou mais status (Pendente, Aprovado, Rejeitado, Cancelado) e gerar em **PDF** ou **Excel (.xlsx)**.
+- O relatório traz uma linha por período de férias — funcionário, CPF, matrícula, região, gestor, status, início/fim, dias, abono pecuniário, data da solicitação e comentário do gestor — pensado para ser usado diretamente na efetivação da programação junto ao RH.
+- A exportação respeita o filtro de região já aplicado na tela.
+- Novas solicitações passaram a registrar também matrícula e gestor do funcionário no momento do envio, para alimentar o relatório completo (solicitações antigas mostrarão "-" nesses campos).
 
 **v1.5**
 - **Regiões viraram um cadastro próprio** (coleção `regioes`), com CRUD completo (botão "🌎 Gerenciar regiões" nas telas de Funcionários e Gestores). O campo região no cadastro de funcionário agora é uma lista suspensa baseada nesse cadastro, e não mais texto livre.

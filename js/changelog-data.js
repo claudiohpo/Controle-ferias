@@ -3,6 +3,20 @@
 // for atendida, uma nova entrada deve ser adicionada ao topo desta lista.
 const HISTORICO_VERSOES = [
   {
+    versao: "1.6",
+    data: "2026-08-14",
+    mudancas: {
+      adicionado: [
+        "Botão 'Exportar relatório' na tela de Solicitações, com modal para escolher um ou mais status (Pendente, Aprovado, Rejeitado, Cancelado) a incluir.",
+        "Exportação em PDF e em Excel (.xlsx), com uma linha por período de férias — funcionário, CPF, matrícula, região, gestor, status, datas de início/fim, dias, abono pecuniário, data da solicitação e comentário do gestor — pronto para efetivar a programação junto ao RH.",
+        "A exportação respeita o filtro de região já aplicado na tela de Solicitações.",
+      ],
+      alterado: [
+        "Novas solicitações de férias passaram a registrar também a matrícula e o gestor do funcionário no momento do envio, para relatórios mais completos.",
+      ],
+    },
+  },
+  {
     versao: "1.5",
     data: "2026-08-14",
     mudancas: {

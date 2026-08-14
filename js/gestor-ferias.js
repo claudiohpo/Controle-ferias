@@ -18,6 +18,20 @@ async function init() {
   if (!renderGestorNav("ferias")) return;
   document.getElementById("filtroStatus").addEventListener("change", carregarLista);
 
+  inicializarModal("modalExportar");
+  document.getElementById("btnAbrirExportar").addEventListener("click", () => {
+    document.getElementById("msgExportar").className = "mensagem";
+    abrirModal("modalExportar");
+  });
+  document.getElementById("btnExportarTodos").addEventListener("click", () => {
+    document.querySelectorAll('#statusExportarGrid input[type="checkbox"]').forEach((c) => (c.checked = true));
+  });
+  document.getElementById("btnExportarNenhum").addEventListener("click", () => {
+    document.querySelectorAll('#statusExportarGrid input[type="checkbox"]').forEach((c) => (c.checked = false));
+  });
+  document.getElementById("btnGerarPDF").addEventListener("click", () => gerarRelatorio("pdf"));
+  document.getElementById("btnGerarExcel").addEventListener("click", () => gerarRelatorio("excel"));
+
   try {
     const todasRegioes = await Api.request("/api/regioes");
     const meusPermitidas = Api.getRegioes();
@@ -120,6 +134,56 @@ async function responder(id, status) {
     await carregarLista();
   } catch (err) {
     alert(err.message);
+  }
+}
+
+async function gerarRelatorio(tipo) {
+  const msg = document.getElementById("msgExportar");
+  msg.className = "mensagem";
+
+  const statusesSelecionados = Array.from(document.querySelectorAll('#statusExportarGrid input[type="checkbox"]:checked')).map((c) => c.value);
+  if (!statusesSelecionados.length) {
+    msg.className = "mensagem erro";
+    msg.textContent = "Selecione ao menos um status para gerar o relatório.";
+    return;
+  }
+
+  msg.className = "mensagem info";
+  msg.textContent = "Gerando relatório...";
+
+  try {
+    // Busca tudo que o gestor pode ver (independente do filtro de status já aplicado na tabela),
+    // para o relatório refletir exatamente os status escolhidos no modal.
+    const todas = await Api.request("/api/ferias");
+
+    let filtradas =
+      regioesFiltroAtual.length && regioesDoGestor.length && regioesFiltroAtual.length < regioesDoGestor.length
+        ? todas.filter((s) => regioesFiltroAtual.includes(s.funcionarioRegiao))
+        : regioesDoGestor.length && regioesFiltroAtual.length === 0
+        ? []
+        : todas;
+
+    filtradas = filtradas.filter((s) => statusesSelecionados.includes(s.status));
+
+    if (!filtradas.length) {
+      msg.className = "mensagem erro";
+      msg.textContent = "Nenhuma solicitação encontrada para os status/regiões selecionados.";
+      return;
+    }
+
+    const linhas = montarLinhasRelatorio(filtradas);
+
+    if (tipo === "pdf") {
+      gerarPDFRelatorio(linhas, statusesSelecionados);
+    } else {
+      gerarExcelRelatorio(linhas);
+    }
+
+    msg.className = "mensagem sucesso";
+    msg.textContent = `Relatório gerado com ${filtradas.length} solicitação(ões) / ${linhas.length} período(s).`;
+  } catch (err) {
+    msg.className = "mensagem erro";
+    msg.textContent = err.message;
   }
 }
 
