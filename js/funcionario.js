@@ -67,7 +67,6 @@ function linhaPeriodo(numero) {
 function renderFormularioSolicitacao() {
   const diasDireito = funcionarioAtual.diasDireito || 30;
   const abonoMax = Math.min(10, Math.floor(diasDireito / 3));
-  const estamosEmJaneiro = new Date().getMonth() === 0;
 
   const area = document.getElementById("areaSolicitacao");
   area.innerHTML = `
@@ -85,8 +84,8 @@ function renderFormularioSolicitacao() {
         <p class="hint" id="resumoDias"></p>
 
         <div style="margin-top:18px; padding:14px; border:1px solid var(--borda); border-radius:8px;">
-          <label style="display:flex; align-items:flex-start; gap:8px; margin-top:0; cursor:${estamosEmJaneiro ? "pointer" : "not-allowed"};">
-            <input type="checkbox" id="chk13" style="width:auto; margin-top:3px;" ${estamosEmJaneiro ? "" : "disabled"} />
+          <label style="display:flex; align-items:flex-start; gap:8px; margin-top:0; cursor:pointer;">
+            <input type="checkbox" id="chk13" style="width:auto; margin-top:3px;" />
             <span>Quero adiantar a <strong>1ª parcela do 13º salário</strong> junto com um dos períodos de férias (Lei 4.749/1965).</span>
           </label>
           <div id="areaPeriodo13" style="display:none; margin-top:10px;">
@@ -94,11 +93,8 @@ function renderFormularioSolicitacao() {
             <select id="periodo13"></select>
           </div>
           <p class="hint" style="margin-top:8px;">
-            ${
-              estamosEmJaneiro
-                ? "Por lei, esse pedido só pode ser feito em janeiro do ano em que o período escolhido começa."
-                : "⚠️ Disponível apenas em janeiro do ano em que as férias vão começar — fora dessa janela, a opção fica bloqueada por lei."
-            }
+            Esta é apenas uma preferência para organizar a programação. O requerimento formal e o lançamento oficial
+            na folha, respeitando os prazos legais, ficam a cargo do RH.
           </p>
         </div>
 
@@ -287,7 +283,9 @@ function imprimirComprovante(id) {
     </table>
     <p><strong>Abono pecuniário:</strong> ${s.abonoPecuniarioDias || 0} dias</p>
     <p><strong>Adiantamento da 1ª parcela do 13º salário:</strong> ${
-      s.adiantar13 ? `Sim, vinculado ao período ${s.periodoAdiantamento13} (Lei 4.749/1965)` : "Não solicitado"
+      s.adiantar13
+        ? `Funcionário manifestou preferência, vinculada ao período ${s.periodoAdiantamento13} (Lei 4.749/1965). O requerimento formal e o lançamento oficial ficam a cargo do RH.`
+        : "Não solicitado"
     }</p>
     <p><strong>Status:</strong> Pré-aprovada pelo gestor (aguarda efetivação pelo RH/gerente)</p>
     </body></html>
