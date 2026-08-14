@@ -1,7 +1,7 @@
 const { ObjectId } = require("mongodb");
 const bcrypt = require("bcryptjs");
 const { getDb } = require("../lib/db");
-const { requireRole } = require("../lib/auth");
+const { requireRole, signToken } = require("../lib/auth");
 
 async function readBody(req) {
   if (req.body && Object.keys(req.body).length) return req.body;
@@ -98,6 +98,24 @@ module.exports = async (req, res) => {
       }
 
       await gestores.updateOne({ _id: gestorId }, { $set: update });
+
+      // Se o gestor está editando o próprio cadastro, emite um token novo já com os dados
+      // atualizados (nome/regiões), para a sessão refletir a mudança sem precisar deslogar.
+      if (payload.username === existente.username) {
+        const novasRegioes = update.regioes !== undefined ? update.regioes : existente.regioes || [];
+        const novoNome = update.nome !== undefined ? update.nome : existente.nome;
+        const token = signToken({ role: "gestor", username: existente.username, nome: novoNome || existente.username, regioes: novasRegioes });
+        res.statusCode = 200;
+        return res.end(
+          JSON.stringify({
+            message: "Gestor atualizado com sucesso.",
+            token,
+            nome: novoNome || existente.username,
+            regioes: novasRegioes,
+          })
+        );
+      }
+
       res.statusCode = 200;
       return res.end(JSON.stringify({ message: "Gestor atualizado com sucesso." }));
     }

@@ -70,6 +70,8 @@ sistema-ferias/
 
 > Dica: para importar os funcionários da sua planilha, abra `gestor-funcionarios.html`, cole o conteúdo do arquivo `funcionarios_para_importar.csv` (sem a linha de cabeçalho, trocando `;` conforme necessário) na caixa de **Importação em lote**. **Atenção:** a planilha original não possui CPF — foi deixado em branco no CSV gerado; edite antes de importar (o CPF é a chave de login do funcionário) ou cadastre manualmente.
 
+> **Atualizando de uma versão anterior à v1.5?** As regiões passaram a ser um cadastro próprio. Rode `npm run migrar-regioes` (com as mesmas variáveis de ambiente do `seed`) para criar automaticamente o cadastro de regiões a partir dos valores já usados nos funcionários existentes. É seguro rodar mais de uma vez.
+
 ## 🔧 Variáveis de Ambiente
 
 | Variável       | Obrigatório | Descrição                                  | Exemplo                                |
@@ -112,8 +114,12 @@ sistema-ferias/
 | `/api/funcionarios`  | PUT/DELETE | Edita/remove um funcionário (gestor, respeitando a região) |
 | `/api/gestores`      | GET    | Lista gestores (sem o hash de senha) |
 | `/api/gestores`      | POST   | Cria um gestor `{ username, password, nome, regioes }` |
-| `/api/gestores`      | PUT    | Edita um gestor `{ id, nome, regioes, novaSenha? }` |
+| `/api/gestores`      | PUT    | Edita um gestor `{ id, nome, regioes, novaSenha? }` — se for o próprio usuário logado, devolve um token novo |
 | `/api/gestores`      | DELETE | Remove um gestor (`?id=...`) |
+| `/api/regioes`       | GET    | Lista todas as regiões cadastradas (sem restrição por permissão) |
+| `/api/regioes`       | POST   | Cria uma região `{ nome }` |
+| `/api/regioes`       | PUT    | Renomeia uma região `{ id, nome }` (propaga o novo nome para funcionários/gestores) |
+| `/api/regioes`       | DELETE | Remove uma região (`?id=...`), bloqueado se houver funcionários nela |
 | `/api/ferias`        | GET    | Lista solicitações (próprias, ou todas dentro da região do gestor) |
 | `/api/ferias`        | POST   | Funcionário envia uma solicitação de férias |
 | `/api/ferias`        | PATCH  | Gestor aprova/rejeita/cancela (`?id=...`, `{ status: 'aprovado'|'rejeitado'|'cancelado', comentario }`) |
@@ -124,6 +130,15 @@ sistema-ferias/
 Uso interno / privado.
 
 ## 🆕 Changelog
+
+**v1.5**
+- **Regiões viraram um cadastro próprio** (coleção `regioes`), com CRUD completo (botão "🌎 Gerenciar regiões" nas telas de Funcionários e Gestores). O campo região no cadastro de funcionário agora é uma lista suspensa baseada nesse cadastro, e não mais texto livre.
+- **Correção do "catch-22" de permissões**: ao editar um gestor, a lista de regiões disponíveis para conceder acesso agora mostra sempre TODAS as regiões cadastradas no sistema — antes só mostrava as regiões que o gestor logado já possuía, o que impedia conceder acesso a uma região nova.
+- **Sessão atualiza sozinha**: ao editar o próprio cadastro (nome, regiões ou senha), o gestor não precisa mais deslogar e logar de novo para as mudanças valerem.
+- **Bug do filtro de regiões corrigido**: desmarcar uma ou todas as regiões no filtro agora atualiza a lista corretamente e na hora (filtragem passou a ser 100% local no navegador).
+- **Calendário anual contínuo**: o "Calendário anual de férias aprovadas" do dashboard deixou de ser travado a um único ano — agora é uma linha do tempo contínua e rolável horizontalmente entre anos, com o nome do funcionário fixo na lateral e uma linha vermelha marcando o dia de hoje.
+- **Bug do "flash" de tema corrigido**: a tela não pisca mais em claro antes de escurecer ao trocar de página com o modo escuro ativo.
+- **Sistema renomeado** de "Sistema de Férias" para **FieldBreak**, com favicon e ícone de instalação (PWA) no tema do guarda-sol de praia.
 
 **v1.4**
 - **Tabelas padronizadas**: todas as tabelas do sistema (Funcionários, Gestores, Solicitações, "sem solicitação" do dashboard) agora usam o mesmo componente — títulos de coluna podem quebrar linha, mas os dados nunca são cortados; além disso, todas as colunas podem ser redimensionadas manualmente arrastando a borda do cabeçalho (a largura escolhida é lembrada no navegador).

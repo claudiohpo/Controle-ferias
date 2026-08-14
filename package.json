@@ -1,12 +1,13 @@
 {
-  "name": "sistema-ferias",
-  "version": "1.0.0",
+  "name": "fieldbreak",
+  "version": "1.5.0",
   "private": true,
   "engines": {
     "node": "22.x"
   },
   "scripts": {
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "migrar-regioes": "node scripts/migrar-regioes.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

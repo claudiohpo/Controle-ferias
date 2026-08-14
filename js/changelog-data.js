@@ -3,6 +3,25 @@
 // for atendida, uma nova entrada deve ser adicionada ao topo desta lista.
 const HISTORICO_VERSOES = [
   {
+    versao: "1.5",
+    data: "2026-08-14",
+    mudancas: {
+      adicionado: [
+        "Cadastro próprio de Regiões (CRUD: adicionar, renomear, excluir), acessível pelo botão '🌎 Gerenciar regiões' nas telas de Funcionários e Gestores.",
+        "No cadastro de funcionário, a região agora é escolhida em uma lista suspensa (baseada no cadastro de regiões) em vez de texto livre.",
+        "No cadastro/edição de gestor, as regiões disponíveis para conceder acesso mostram sempre a lista completa cadastrada no sistema — não ficam mais restritas às regiões que o próprio gestor logado já possui.",
+        "Ao editar o próprio cadastro (nome, regiões ou senha), a sessão do gestor é atualizada automaticamente, sem precisar deslogar e logar de novo.",
+        "Calendário anual de férias aprovadas agora é contínuo entre anos e rolável horizontalmente, com o nome do funcionário fixo na lateral durante a rolagem e uma linha marcando o dia de hoje.",
+        "Favicons e ícone de instalação (PWA) com o tema do guarda-sol de praia, em vários tamanhos.",
+      ],
+      corrigido: [
+        "Corrigido bug em que desmarcar regiões no filtro (Funcionários/Solicitações) não atualizava a lista corretamente — a filtragem agora é aplicada instantaneamente no navegador.",
+        "Corrigido o 'flash' de tela clara antes de escurecer ao trocar de página no modo escuro.",
+      ],
+      alterado: ["Sistema renomeado de 'Sistema de Férias' para 'FieldBreak' em todas as telas."],
+    },
+  },
+  {
     versao: "1.4",
     data: "2026-08-13",
     mudancas: {

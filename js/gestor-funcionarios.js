@@ -57,6 +57,13 @@ async function init() {
   document.getElementById("btnCancelarSelecao").addEventListener("click", sairModoSelecao);
   document.getElementById("btnConfirmarExclusaoVarios").addEventListener("click", confirmarExclusaoVarios);
 
+  document.getElementById("btnGerenciarRegioes").addEventListener("click", () => {
+    abrirGerenciarRegioes(async () => {
+      await carregarListaRegioes();
+      renderTabela();
+    });
+  });
+
   await carregarListaRegioes();
   await carregarLista();
 }
@@ -133,14 +140,23 @@ function debounce(fn, ms) {
 
 async function carregarListaRegioes() {
   try {
-    regioesDoGestor = await Api.request("/api/funcionarios?listaRegioes=true");
-    document.getElementById("listaRegioesDatalist").innerHTML = regioesDoGestor.map((r) => `<option value="${r}"></option>`).join("");
+    const todasRegioes = await Api.request("/api/regioes"); // [{_id, nome}]
+    const meusPermitidas = Api.getRegioes(); // [] = sem restrição (vê todas)
+    const nomesPermitidos = meusPermitidas.length ? todasRegioes.filter((r) => meusPermitidas.includes(r.nome)) : todasRegioes;
+    regioesDoGestor = nomesPermitidos.map((r) => r.nome);
+
+    const selectRegiao = document.getElementById("regiao");
+    const valorAtual = selectRegiao.value;
+    selectRegiao.innerHTML =
+      `<option value="">Selecione...</option>` + regioesDoGestor.map((r) => `<option value="${r}">${r}</option>`).join("");
+    if (valorAtual && regioesDoGestor.includes(valorAtual)) selectRegiao.value = valorAtual;
+
     criarSeletorRegioes(
       "filtroRegioes",
       regioesDoGestor,
       (selecionadas) => {
         regioesFiltroAtual = selecionadas;
-        carregarLista();
+        renderTabela();
       },
       "funcionarios"
     );
@@ -297,9 +313,6 @@ async function carregarLista() {
   try {
     const params = new URLSearchParams();
     if (busca) params.set("busca", busca);
-    if (regioesFiltroAtual.length && regioesFiltroAtual.length < regioesDoGestor.length) {
-      params.set("regioes", regioesFiltroAtual.join(","));
-    }
     const query = params.toString();
     todosFuncionarios = await Api.request(`/api/funcionarios${query ? "?" + query : ""}`);
     renderTabela();
@@ -340,12 +353,20 @@ function ordenarPor(campo) {
 
 function renderTabela() {
   const div = document.getElementById("listaFuncionarios");
-  if (!todosFuncionarios.length) {
+
+  const filtrados =
+    regioesFiltroAtual.length && regioesDoGestor.length && regioesFiltroAtual.length < regioesDoGestor.length
+      ? todosFuncionarios.filter((f) => regioesFiltroAtual.includes(f.regiao))
+      : regioesDoGestor.length && regioesFiltroAtual.length === 0
+      ? [] // usuário desmarcou todas as regiões no filtro: mostra nada, de propósito
+      : todosFuncionarios;
+
+  if (!filtrados.length) {
     div.innerHTML = `<p class="hint">Nenhum funcionário encontrado.</p>`;
     return;
   }
 
-  const lista = ordenarLista(todosFuncionarios);
+  const lista = ordenarLista(filtrados);
 
   const headerHtml = COLUNAS.map((c) => {
     const ativo = ordenacaoAtual.campo === c.campo;

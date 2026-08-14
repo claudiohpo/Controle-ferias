@@ -12,26 +12,32 @@ function somaDiasData(inicioStr, dias) {
 
 let regioesDoGestor = [];
 let regioesFiltroAtual = [];
+let todasSolicitacoes = [];
 
 async function init() {
   if (!renderGestorNav("ferias")) return;
   document.getElementById("filtroStatus").addEventListener("change", carregarLista);
 
   try {
-    regioesDoGestor = await Api.request("/api/funcionarios?listaRegioes=true");
+    const todasRegioes = await Api.request("/api/regioes");
+    const meusPermitidas = Api.getRegioes();
+    const permitidas = meusPermitidas.length ? todasRegioes.filter((r) => meusPermitidas.includes(r.nome)) : todasRegioes;
+    regioesDoGestor = permitidas.map((r) => r.nome);
+
     criarSeletorRegioes(
       "filtroRegioes",
       regioesDoGestor,
       (selecionadas) => {
         regioesFiltroAtual = selecionadas;
-        carregarLista();
+        renderTabela();
       },
       "ferias"
     );
   } catch (err) {
     console.error(err);
-    await carregarLista();
   }
+
+  await carregarLista();
 }
 
 async function carregarLista() {
@@ -40,53 +46,64 @@ async function carregarLista() {
   try {
     const params = new URLSearchParams();
     if (status) params.set("status", status);
-    if (regioesFiltroAtual.length && regioesFiltroAtual.length < regioesDoGestor.length) {
-      params.set("regioes", regioesFiltroAtual.join(","));
-    }
     const query = params.toString();
-    const lista = await Api.request(`/api/ferias${query ? "?" + query : ""}`);
-    if (!lista.length) {
-      div.innerHTML = `<p class="hint">Nenhuma solicitação encontrada.</p>`;
-      return;
-    }
-    div.innerHTML = `
-      <div class="table-wrap">
-        <table class="tabela-resizavel" id="tabelaFerias">
-          <thead>
-            <tr><th>Funcionário</th><th>Períodos</th><th>Abono</th><th>Status</th><th>Enviado em</th><th class="nao-redimensionavel">Ações</th></tr>
-          </thead>
-          <tbody>
-            ${lista
-              .map(
-                (s) => `
-              <tr>
-                <td title="${s.funcionarioNome}">${s.funcionarioNome}<br/><span class="hint">${s.funcionarioCpf}</span></td>
-                <td>${s.periodos.map((p) => `${fmtData(p.inicio)} a ${fmtData(somaDiasData(p.inicio, p.dias))} (${p.dias}d)`).join("<br/>")}</td>
-                <td>${s.abonoPecuniarioDias || 0} dias</td>
-                <td><span class="badge ${s.status}">${s.status}</span>${s.comentarioGestor ? `<div class="hint">${s.comentarioGestor}</div>` : ""}</td>
-                <td>${fmtData(s.criadoEm)}</td>
-                <td>
-                  ${
-                    s.status === "pendente"
-                      ? `<button class="btn sucesso pequeno" onclick="responder('${s._id}','aprovado')">Aprovar</button>
-                         <button class="btn erro pequeno" onclick="responder('${s._id}','rejeitado')">Rejeitar</button>`
-                      : s.status === "aprovado"
-                      ? `<button class="btn erro pequeno" onclick="responder('${s._id}','cancelado')">Cancelar</button>`
-                      : "-"
-                  }
-                </td>
-              </tr>
-            `
-              )
-              .join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
-    inicializarTabelaRedimensionavel("tabelaFerias");
+    todasSolicitacoes = await Api.request(`/api/ferias${query ? "?" + query : ""}`);
+    renderTabela();
   } catch (err) {
     div.innerHTML = `<div class="mensagem erro" style="display:block;">${err.message}</div>`;
   }
+}
+
+function renderTabela() {
+  const div = document.getElementById("listaSolicitacoes");
+
+  const lista =
+    regioesFiltroAtual.length && regioesDoGestor.length && regioesFiltroAtual.length < regioesDoGestor.length
+      ? todasSolicitacoes.filter((s) => regioesFiltroAtual.includes(s.funcionarioRegiao))
+      : regioesDoGestor.length && regioesFiltroAtual.length === 0
+      ? [] // todas as regiões foram desmarcadas no filtro: mostra nada, de propósito
+      : todasSolicitacoes;
+
+  if (!lista.length) {
+    div.innerHTML = `<p class="hint">Nenhuma solicitação encontrada.</p>`;
+    return;
+  }
+
+  div.innerHTML = `
+    <div class="table-wrap">
+      <table class="tabela-resizavel" id="tabelaFerias">
+        <thead>
+          <tr><th>Funcionário</th><th>Períodos</th><th>Abono</th><th>Status</th><th>Enviado em</th><th class="nao-redimensionavel">Ações</th></tr>
+        </thead>
+        <tbody>
+          ${lista
+            .map(
+              (s) => `
+            <tr>
+              <td title="${s.funcionarioNome}">${s.funcionarioNome}<br/><span class="hint">${s.funcionarioCpf}</span></td>
+              <td>${s.periodos.map((p) => `${fmtData(p.inicio)} a ${fmtData(somaDiasData(p.inicio, p.dias))} (${p.dias}d)`).join("<br/>")}</td>
+              <td>${s.abonoPecuniarioDias || 0} dias</td>
+              <td><span class="badge ${s.status}">${s.status}</span>${s.comentarioGestor ? `<div class="hint">${s.comentarioGestor}</div>` : ""}</td>
+              <td>${fmtData(s.criadoEm)}</td>
+              <td>
+                ${
+                  s.status === "pendente"
+                    ? `<button class="btn sucesso pequeno" onclick="responder('${s._id}','aprovado')">Aprovar</button>
+                       <button class="btn erro pequeno" onclick="responder('${s._id}','rejeitado')">Rejeitar</button>`
+                    : s.status === "aprovado"
+                    ? `<button class="btn erro pequeno" onclick="responder('${s._id}','cancelado')">Cancelar</button>`
+                    : "-"
+                }
+              </td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+  inicializarTabelaRedimensionavel("tabelaFerias");
 }
 
 async function responder(id, status) {

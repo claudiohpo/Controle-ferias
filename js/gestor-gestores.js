@@ -21,15 +21,26 @@ async function init() {
     sairModoEdicao();
     abrirModal("modalGestor");
   });
+  document.getElementById("btnGerenciarRegioes").addEventListener("click", () => {
+    abrirGerenciarRegioes(async () => {
+      await carregarRegioesDisponiveis();
+    });
+  });
 
+  await carregarRegioesDisponiveis();
+  await carregarLista();
+}
+
+async function carregarRegioesDisponiveis() {
   try {
-    regioesDisponiveis = await Api.request("/api/funcionarios?listaRegioes=true");
+    // Lista COMPLETA de regiões (sem filtrar pelas permissões do gestor logado): é necessário
+    // para que qualquer gestor consiga conceder acesso a uma região que ele próprio ainda não gerencia.
+    const todas = await Api.request("/api/regioes");
+    regioesDisponiveis = todas.map((r) => r.nome);
   } catch (err) {
     regioesDisponiveis = [];
   }
-  renderCheckboxRegioes([]);
-
-  await carregarLista();
+  renderCheckboxRegioes(regioesSelecionadasNoForm());
 }
 
 function renderCheckboxRegioes(selecionadas) {
@@ -113,7 +124,13 @@ async function salvarGestor(e) {
     if (editandoGestorId) {
       const body = { id: editandoGestorId, nome: document.getElementById("novoNome").value, regioes };
       if (senha) body.novaSenha = senha;
-      await Api.request("/api/gestores", { method: "PUT", body });
+      const resposta = await Api.request("/api/gestores", { method: "PUT", body });
+      // Se editei meu próprio cadastro, a API devolve um token novo — atualiza a sessão
+      // localmente para as mudanças de região valerem sem precisar deslogar.
+      if (resposta && resposta.token) {
+        Api.setSessao(resposta.token, "gestor", resposta.nome, resposta.regioes);
+        renderGestorNav("gestores");
+      }
     } else {
       await Api.request("/api/gestores", {
         method: "POST",

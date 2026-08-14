@@ -79,6 +79,7 @@ async function init() {
   anoSelect.addEventListener("change", () => renderAno(periodos, Number(anoSelect.value)));
 
   renderAno(periodos, Number(anoSelect.value));
+  renderGantt(periodos);
 }
 
 function renderStats() {
@@ -141,9 +142,7 @@ function renderDonut() {
 }
 
 function renderAno(periodos, ano) {
-  document.getElementById("anoCalendarioLabel").textContent = `Ano: ${ano}`;
   renderBarraMensal(periodos, ano);
-  renderGantt(periodos, ano);
   renderConcentracao(periodos, ano);
 }
 
@@ -179,30 +178,73 @@ function renderBarraMensal(periodos, ano) {
   `;
 }
 
-function renderGantt(periodos, ano) {
-  const total = diasNoAno(ano);
-  const doAno = periodos
-    .filter((p) => p.inicio.getUTCFullYear() <= ano && p.fim.getUTCFullYear() >= ano)
-    .map((p) => {
-      const inicioClip = p.inicio.getTime() < Date.UTC(ano, 0, 1) ? new Date(Date.UTC(ano, 0, 1)) : p.inicio;
-      const fimClip = p.fim.getTime() > Date.UTC(ano, 11, 31) ? new Date(Date.UTC(ano, 11, 31)) : p.fim;
-      return { ...p, inicioClip, fimClip };
-    });
+const PX_POR_DIA = 5.5;
+const LARGURA_COLUNA_NOME = 170;
 
+function diaAbsoluto(date) {
+  // Índice de dia absoluto (desde uma época fixa) — usado para posicionar tudo em px.
+  return Math.floor(date.getTime() / 86400000);
+}
+
+function renderGantt(periodos) {
   const container = document.getElementById("calendarioAnual");
 
-  if (!doAno.length) {
-    container.innerHTML = `<p class="gantt-empty">Nenhuma férias aprovada para ${ano}.</p>`;
+  if (!periodos.length) {
+    container.innerHTML = `<p class="gantt-empty">Nenhuma férias aprovada ainda.</p>`;
     return;
   }
 
+  const hoje = new Date();
+  const anoAtual = hoje.getUTCFullYear();
+
+  let minAno = anoAtual;
+  let maxAno = anoAtual;
+  periodos.forEach((p) => {
+    minAno = Math.min(minAno, p.inicio.getUTCFullYear());
+    maxAno = Math.max(maxAno, p.fim.getUTCFullYear());
+  });
+
+  const rangeInicio = new Date(Date.UTC(minAno, 0, 1));
+  const rangeFim = new Date(Date.UTC(maxAno, 11, 31));
+  const diaBase = diaAbsoluto(rangeInicio);
+  const totalDias = diaAbsoluto(rangeFim) - diaBase + 1;
+  const larguraTotal = totalDias * PX_POR_DIA;
+
+  function pxDoDia(date) {
+    return (diaAbsoluto(date) - diaBase) * PX_POR_DIA;
+  }
+
+  // Cabeçalho: um rótulo por mês, largura proporcional aos dias daquele mês.
+  const meses = [];
+  for (let ano = minAno; ano <= maxAno; ano++) {
+    for (let mes = 0; mes < 12; mes++) {
+      const inicioMes = new Date(Date.UTC(ano, mes, 1));
+      const fimMes = new Date(Date.UTC(ano, mes + 1, 0));
+      const largura = (diaAbsoluto(fimMes) - diaAbsoluto(inicioMes) + 1) * PX_POR_DIA;
+      meses.push({ ano, mes, largura, offset: pxDoDia(inicioMes), inicioDeAno: mes === 0 });
+    }
+  }
+
+  const headerHtml = meses
+    .map(
+      (m) =>
+        `<div class="gantt-mes-label ${m.inicioDeAno ? "ano-novo" : ""}" style="width:${m.largura}px; flex-basis:${m.largura}px;">${NOMES_MESES[m.mes]}${
+          m.inicioDeAno ? " " + m.ano : ""
+        }</div>`
+    )
+    .join("");
+
+  const gridlinesHtml = meses
+    .filter((m) => m.offset > 0)
+    .map((m) => `<div class="gantt-gridline ${m.inicioDeAno ? "ano-novo" : ""}" style="left:${m.offset}px;"></div>`)
+    .join("");
+
   // Agrupa por funcionário (uma linha por pessoa, podendo ter mais de uma barra).
   const porFuncionario = new Map();
-  for (const p of doAno) {
+  for (const p of periodos) {
     if (!porFuncionario.has(p.funcionarioNome)) porFuncionario.set(p.funcionarioNome, []);
     porFuncionario.get(p.funcionarioNome).push(p);
   }
-
   const linhas = Array.from(porFuncionario.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 
   const linhasHtml = linhas
@@ -210,34 +252,51 @@ function renderGantt(periodos, ano) {
       const cor = corPorNome(nome);
       const barrasHtml = barras
         .map((b) => {
-          const diaIni = diaDoAno(b.inicioClip, ano);
-          const diaFim = diaDoAno(b.fimClip, ano);
-          const left = ((diaIni - 1) / total) * 100;
-          const width = ((diaFim - diaIni + 1) / total) * 100;
+          const left = pxDoDia(b.inicio);
+          const width = pxDoDia(b.fim) - left + PX_POR_DIA;
           const titulo = `${nome}: ${fmtDataUTC(b.inicio)} a ${fmtDataUTC(b.fim)}`;
-          return `<div class="gantt-bar" title="${titulo}" style="left:${left}%; width:${width}%; background:${cor};"></div>`;
+          return `<div class="gantt-bar" title="${titulo}" style="left:${left}px; width:${width}px; background:${cor};"></div>`;
         })
         .join("");
       return `
         <div class="gantt-row">
           <div class="gantt-nome" title="${nome}">${nome}</div>
-          <div class="gantt-track">${barrasHtml}</div>
+          <div class="gantt-track" style="width:${larguraTotal}px;">${barrasHtml}</div>
         </div>
       `;
     })
     .join("");
 
+  // Linha marcando "hoje", quando estiver dentro do intervalo exibido.
+  let hojeHtml = "";
+  let hojePx = null;
+  if (hoje >= rangeInicio && hoje <= rangeFim) {
+    hojePx = pxDoDia(new Date(Date.UTC(hoje.getUTCFullYear(), hoje.getUTCMonth(), hoje.getUTCDate())));
+    hojeHtml = `<div class="gantt-hoje-linha" style="left:${hojePx}px;"><span class="gantt-hoje-rotulo">hoje</span></div>`;
+  }
+
   container.innerHTML = `
     <div class="gantt">
-      <div class="gantt-inner">
-        <div class="gantt-header">
-          <div></div>
-          <div class="gantt-months">${NOMES_MESES.map((m) => `<span>${m}</span>`).join("")}</div>
+      <div class="gantt-inner" style="width:${LARGURA_COLUNA_NOME + larguraTotal}px;">
+        <div class="gantt-header-row">
+          <div class="gantt-corner"></div>
+          ${headerHtml}
         </div>
-        ${linhasHtml}
+        <div class="gantt-body">
+          <div class="gantt-gridlines" style="width:${larguraTotal}px;">${gridlinesHtml}${hojeHtml}</div>
+          ${linhasHtml}
+        </div>
       </div>
     </div>
   `;
+
+  // Rola automaticamente até "hoje" (centralizado), para já abrir mostrando o período relevante.
+  const scrollWrap = container.querySelector(".gantt");
+  if (scrollWrap && hojePx !== null) {
+    requestAnimationFrame(() => {
+      scrollWrap.scrollLeft = Math.max(0, LARGURA_COLUNA_NOME + hojePx - scrollWrap.clientWidth / 2);
+    });
+  }
 }
 
 function renderConcentracao(periodos, ano) {
