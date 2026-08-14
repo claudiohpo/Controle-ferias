@@ -737,17 +737,58 @@ th.ordenavel.ativo .seta {
   background: var(--bg);
 }
 
-/* ---- Tabelas de linha única, sem quebra e sem scroll horizontal ---- */
-table.tabela-fixa {
-  table-layout: fixed;
-  width: 100%;
+/* ---- Tabelas padronizadas: título pode quebrar linha, dado nunca é cortado sem querer ---- */
+table.tabela-resizavel {
+  table-layout: auto; /* travada para "fixed" via JS após medir a largura natural */
 }
 
-table.tabela-fixa td,
-table.tabela-fixa th {
+table.tabela-resizavel th {
+  white-space: normal;
+  word-break: break-word;
+  vertical-align: bottom;
+  position: relative;
+  padding-right: 16px;
+}
+
+table.tabela-resizavel td {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+table.tabela-resizavel th.nao-redimensionavel {
+  padding-right: 10px;
+}
+
+.col-resizer {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 3;
+  border-radius: 3px;
+}
+
+.col-resizer:hover {
+  background: var(--primaria);
+  opacity: 0.45;
+}
+
+body.redimensionando-coluna {
+  cursor: col-resize;
+  user-select: none;
+}
+
+body.redimensionando-coluna .col-resizer {
+  background: var(--primaria);
+  opacity: 0.45;
+}
+
+/* ---- Seleção múltipla em tabelas (checkbox) ---- */
+.col-checkbox {
+  width: 36px;
 }
 
 /* ---- Abas de importação (colar / arquivo) ---- */

@@ -330,11 +330,11 @@ function renderSemSolicitacao() {
 
   div.innerHTML = `
     <div class="table-wrap">
-      <table class="tabela-fixa">
+      <table class="tabela-resizavel" id="tabelaSemSolicitacao">
         <thead><tr>${headerHtml}</tr></thead>
         <tbody>
           ${lista
-            .map((f) => `<tr><td title="${f.nome}">${f.nome}</td><td>${f.cpf}</td><td>${f.regiao || "-"}</td><td>${f.gestor || "-"}</td></tr>`)
+            .map((f) => `<tr><td title="${f.nome}">${f.nome}</td><td>${f.cpf}</td><td title="${f.regiao || ""}">${f.regiao || "-"}</td><td title="${f.gestor || ""}">${f.gestor || "-"}</td></tr>`)
             .join("")}
         </tbody>
       </table>
@@ -344,6 +344,7 @@ function renderSemSolicitacao() {
   div.querySelectorAll("th.ordenavel").forEach((th) => {
     th.addEventListener("click", () => ordenarSemSolicitacao(th.dataset.campo));
   });
+  inicializarTabelaRedimensionavel("tabelaSemSolicitacao");
 }
 
 init();

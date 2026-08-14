@@ -125,6 +125,12 @@ Uso interno / privado.
 
 ## 🆕 Changelog
 
+**v1.4**
+- **Tabelas padronizadas**: todas as tabelas do sistema (Funcionários, Gestores, Solicitações, "sem solicitação" do dashboard) agora usam o mesmo componente — títulos de coluna podem quebrar linha, mas os dados nunca são cortados; além disso, todas as colunas podem ser redimensionadas manualmente arrastando a borda do cabeçalho (a largura escolhida é lembrada no navegador).
+- **Exclusão múltipla de funcionários**: botão "Excluir funcionários" habilita checkboxes na tabela (com opção de selecionar todos), permitindo remover vários de uma vez, com confirmação antes de apagar.
+- **Dashboard**: os cards "Status das solicitações" e "Funcionários de férias por mês" agora têm sempre a mesma largura e altura entre si.
+- **Histórico de versões**: novo botão ao lado de "Sair" no painel do gestor mostra a versão atual do sistema; ao clicar, abre um modal com todas as versões anteriores e o que foi adicionado, alterado, corrigido ou removido em cada uma.
+
 **v1.3**
 - **Máscara de CPF** aplicada em todos os campos de CPF (login do funcionário e cadastro/edição pelo gestor) — aceita digitação ou colagem com ou sem pontuação, sempre enviando somente números para o banco.
 - **Abono pecuniário** sem o "0" fixo pré-digitado — agora aparece apenas como exemplo em cinza (placeholder).

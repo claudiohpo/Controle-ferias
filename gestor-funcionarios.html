@@ -20,7 +20,15 @@
           <input type="text" id="busca" placeholder="Buscar por nome, CPF ou matr" style="max-width:220px;" />
           <div id="filtroRegioes"></div>
           <button type="button" class="btn secundario pequeno" id="btnAbrirImportar">📥 Importar em lote</button>
+          <button type="button" class="btn secundario pequeno" id="btnModoExclusao">🗑️ Excluir funcionários</button>
           <button type="button" class="btn pequeno" id="btnAbrirNovo">+ Novo funcionário</button>
+        </div>
+      </div>
+      <div id="barraSelecao" class="mensagem info" style="display:none; align-items:center; justify-content:space-between; gap:10px;">
+        <span id="textoSelecao">0 selecionado(s)</span>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn erro pequeno" id="btnConfirmarExclusaoVarios">Excluir selecionados</button>
+          <button type="button" class="btn secundario pequeno" id="btnCancelarSelecao">Cancelar</button>
         </div>
       </div>
       <div id="listaFuncionarios" style="margin-top:16px;">Carregando...</div>
@@ -121,10 +129,12 @@ Os últimos 3 campos são opcionais — se vazios, o sistema calcula automaticam
 
   <script src="js/theme.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/changelog-data.js"></script>
   <script src="js/gestor-nav.js"></script>
   <script src="js/regioes-filtro.js"></script>
   <script src="js/modal.js"></script>
   <script src="js/mask-cpf.js"></script>
+  <script src="js/tabela-resizavel.js"></script>
   <script src="js/gestor-funcionarios.js"></script>
 </body>
 </html>

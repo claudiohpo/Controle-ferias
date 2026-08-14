@@ -10,6 +10,8 @@ let regioesFiltroAtual = [];
 let ordenacaoAtual = { campo: "dataLimiteInicioFerias", asc: true };
 let editandoId = null;
 let arquivoCsvTexto = null;
+let modoSelecao = false;
+let idsSelecionados = new Set();
 
 const COLUNAS = [
   { campo: "nome", label: "Nome" },
@@ -51,8 +53,55 @@ async function init() {
 
   document.getElementById("busca").addEventListener("input", debounce(carregarLista, 350));
 
+  document.getElementById("btnModoExclusao").addEventListener("click", entrarModoSelecao);
+  document.getElementById("btnCancelarSelecao").addEventListener("click", sairModoSelecao);
+  document.getElementById("btnConfirmarExclusaoVarios").addEventListener("click", confirmarExclusaoVarios);
+
   await carregarListaRegioes();
   await carregarLista();
+}
+
+function entrarModoSelecao() {
+  modoSelecao = true;
+  idsSelecionados.clear();
+  document.getElementById("btnModoExclusao").style.display = "none";
+  document.getElementById("btnAbrirNovo").style.display = "none";
+  document.getElementById("btnAbrirImportar").style.display = "none";
+  document.getElementById("barraSelecao").style.display = "flex";
+  atualizarTextoSelecao();
+  renderTabela();
+}
+
+function sairModoSelecao() {
+  modoSelecao = false;
+  idsSelecionados.clear();
+  document.getElementById("btnModoExclusao").style.display = "inline-flex";
+  document.getElementById("btnAbrirNovo").style.display = "inline-flex";
+  document.getElementById("btnAbrirImportar").style.display = "inline-flex";
+  document.getElementById("barraSelecao").style.display = "none";
+  renderTabela();
+}
+
+function atualizarTextoSelecao() {
+  document.getElementById("textoSelecao").textContent = `${idsSelecionados.size} selecionado(s)`;
+  document.getElementById("btnConfirmarExclusaoVarios").disabled = idsSelecionados.size === 0;
+}
+
+async function confirmarExclusaoVarios() {
+  if (!idsSelecionados.size) return;
+  const qtd = idsSelecionados.size;
+  if (!confirm(`Tem certeza que deseja excluir ${qtd} funcionário(s)? Esta ação é permanente e não pode ser desfeita.`)) return;
+
+  const ids = Array.from(idsSelecionados);
+  const resultados = await Promise.allSettled(ids.map((id) => Api.request(`/api/funcionarios?id=${id}`, { method: "DELETE" })));
+  const falhas = resultados.filter((r) => r.status === "rejected").length;
+
+  sairModoSelecao();
+  await carregarLista();
+
+  if (falhas) {
+    alert(`${qtd - falhas} funcionário(s) excluído(s). ${falhas} não puderam ser excluídos.`);
+  }
 }
 
 function alternarAbaImportar(aba) {
@@ -304,21 +353,28 @@ function renderTabela() {
     return `<th class="ordenavel ${ativo ? "ativo" : ""}" data-campo="${c.campo}" title="${c.label}">${c.label} <span class="seta">${seta}</span></th>`;
   }).join("");
 
+  const checkboxHeaderHtml = modoSelecao
+    ? `<th class="nao-redimensionavel col-checkbox"><input type="checkbox" id="checkAllFuncionarios" aria-label="Selecionar todos" /></th>`
+    : "";
+
   div.innerHTML = `
     <div class="table-wrap">
-      <table class="tabela-fixa">
-        <colgroup>
-          <col style="width:20%" /><col style="width:14%" /><col style="width:9%" /><col style="width:11%" />
-          <col style="width:11%" /><col style="width:11%" /><col style="width:11%" /><col style="width:9%" /><col style="width:44px" />
-        </colgroup>
+      <table class="tabela-resizavel" id="tabelaFuncionarios">
         <thead>
-          <tr>${headerHtml}<th></th></tr>
+          <tr>${checkboxHeaderHtml}${headerHtml}<th class="nao-redimensionavel"></th></tr>
         </thead>
         <tbody>
           ${lista
             .map(
               (f) => `
             <tr>
+              ${
+                modoSelecao
+                  ? `<td class="col-checkbox"><input type="checkbox" class="chk-funcionario" data-id="${f._id}" ${
+                      idsSelecionados.has(f._id) ? "checked" : ""
+                    } /></td>`
+                  : ""
+              }
               <td title="${f.nome}">${f.nome}</td>
               <td title="${f.cpf}">${f.cpf}</td>
               <td title="${f.matricula || ""}">${f.matricula || "-"}</td>
@@ -327,7 +383,7 @@ function renderTabela() {
               <td>${fmtData(f.periodoAquisitivoInicio)}</td>
               <td>${fmtData(f.periodoAquisitivoFim)}</td>
               <td>${fmtData(f.dataLimiteInicioFerias)}</td>
-              <td><button class="btn-icone" data-editar="${f._id}" title="Editar" aria-label="Editar">✏️</button></td>
+              <td>${modoSelecao ? "" : `<button class="btn-icone" data-editar="${f._id}" title="Editar" aria-label="Editar">✏️</button>`}</td>
             </tr>
           `
             )
@@ -346,6 +402,31 @@ function renderTabela() {
       if (f) entrarModoEdicao(f);
     });
   });
+
+  if (modoSelecao) {
+    const checkAll = document.getElementById("checkAllFuncionarios");
+    const todosMarcadosNaLista = lista.length > 0 && lista.every((f) => idsSelecionados.has(f._id));
+    checkAll.checked = todosMarcadosNaLista;
+    checkAll.addEventListener("change", () => {
+      if (checkAll.checked) {
+        lista.forEach((f) => idsSelecionados.add(f._id));
+      } else {
+        lista.forEach((f) => idsSelecionados.delete(f._id));
+      }
+      atualizarTextoSelecao();
+      renderTabela();
+    });
+    div.querySelectorAll(".chk-funcionario").forEach((chk) => {
+      chk.addEventListener("change", () => {
+        if (chk.checked) idsSelecionados.add(chk.dataset.id);
+        else idsSelecionados.delete(chk.dataset.id);
+        atualizarTextoSelecao();
+        checkAll.checked = lista.every((f) => idsSelecionados.has(f._id));
+      });
+    });
+  }
+
+  inicializarTabelaRedimensionavel("tabelaFuncionarios");
 }
 
 async function excluirFuncionario(id, fecharModalAoExcluir) {

@@ -144,11 +144,8 @@ async function carregarLista() {
     }
     div.innerHTML = `
       <div class="table-wrap">
-        <table class="tabela-fixa">
-          <colgroup>
-            <col style="width:20%" /><col style="width:24%" /><col style="width:34%" /><col style="width:16%" /><col style="width:44px" />
-          </colgroup>
-          <thead><tr><th>Usuário</th><th>Nome</th><th>Regiões</th><th>Criado em</th><th></th></tr></thead>
+        <table class="tabela-resizavel" id="tabelaGestores">
+          <thead><tr><th>Usuário</th><th>Nome</th><th>Regiões</th><th>Criado em</th><th class="nao-redimensionavel"></th></tr></thead>
           <tbody>
             ${lista
               .map(
@@ -176,6 +173,7 @@ async function carregarLista() {
         if (g) entrarModoEdicao(g);
       });
     });
+    inicializarTabelaRedimensionavel("tabelaGestores");
   } catch (err) {
     div.innerHTML = `<div class="mensagem erro" style="display:block;">${err.message}</div>`;
   }

@@ -51,16 +51,16 @@ async function carregarLista() {
     }
     div.innerHTML = `
       <div class="table-wrap">
-        <table>
+        <table class="tabela-resizavel" id="tabelaFerias">
           <thead>
-            <tr><th>Funcionário</th><th>Períodos</th><th>Abono</th><th>Status</th><th>Enviado em</th><th>Ações</th></tr>
+            <tr><th>Funcionário</th><th>Períodos</th><th>Abono</th><th>Status</th><th>Enviado em</th><th class="nao-redimensionavel">Ações</th></tr>
           </thead>
           <tbody>
             ${lista
               .map(
                 (s) => `
               <tr>
-                <td>${s.funcionarioNome}<br/><span class="hint">${s.funcionarioCpf}</span></td>
+                <td title="${s.funcionarioNome}">${s.funcionarioNome}<br/><span class="hint">${s.funcionarioCpf}</span></td>
                 <td>${s.periodos.map((p) => `${fmtData(p.inicio)} a ${fmtData(somaDiasData(p.inicio, p.dias))} (${p.dias}d)`).join("<br/>")}</td>
                 <td>${s.abonoPecuniarioDias || 0} dias</td>
                 <td><span class="badge ${s.status}">${s.status}</span>${s.comentarioGestor ? `<div class="hint">${s.comentarioGestor}</div>` : ""}</td>
@@ -83,6 +83,7 @@ async function carregarLista() {
         </table>
       </div>
     `;
+    inicializarTabelaRedimensionavel("tabelaFerias");
   } catch (err) {
     div.innerHTML = `<div class="mensagem erro" style="display:block;">${err.message}</div>`;
   }
