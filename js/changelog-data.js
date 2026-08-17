@@ -3,6 +3,21 @@
 // for atendida, uma nova entrada deve ser adicionada ao topo desta lista.
 const HISTORICO_VERSOES = [
   {
+    versao: "1.9",
+    data: "2026-08-15",
+    mudancas: {
+      adicionado: [
+        "Ordenação por clique nas colunas da tabela de Solicitações (Funcionário, Início do Período, Status, Enviado em), igual à já existente em Funcionários.",
+        "Detecção de sobreposição de férias: cada solicitação agora mostra uma coluna 'Sobreposição' com quantos outros funcionários já aprovados (ou também pendentes) têm período coincidente, com nomes e datas ao passar o mouse.",
+        "Campo 'Limite simultâneo' configurável na tela de Solicitações — quando aprovar uma solicitação pendente ultrapassaria esse número de pessoas de férias ao mesmo tempo, a coluna de sobreposição sinaliza em amarelo/vermelho.",
+        "O mesmo limite agora é usado no dashboard, na seção 'Dias com maior concentração de férias', para destacar visualmente os dias que ultrapassam o recomendado.",
+      ],
+      corrigido: [
+        "A seção 'Dias com maior concentração de férias' do dashboard não corta mais os nomes dos funcionários — a lista completa aparece agora, com quebra de linha normal em vez de reticências.",
+      ],
+    },
+  },
+  {
     versao: "1.8",
     data: "2026-08-14",
     mudancas: {

@@ -335,16 +335,30 @@ function renderConcentracao(periodos, ano) {
         .map((item) => {
           const data = new Date(Date.UTC(ano, 0, item.dia));
           const nomesUnicos = Array.from(new Set(item.nomes));
+          const limite = obterLimiteSimultaneoDashboard();
+          const nivel = item.qtd > limite ? "critico" : item.qtd === limite ? "atencao" : "livre";
           return `
           <div class="concentracao-item">
-            <span><strong>${fmtDataUTC(data)}</strong> — ${item.qtd} funcionários simultaneamente</span>
-            <span class="hint" title="${nomesUnicos.join(", ")}">${nomesUnicos.slice(0, 3).join(", ")}${nomesUnicos.length > 3 ? "…" : ""}</span>
+            <div class="concentracao-cabecalho">
+              <span><strong>${fmtDataUTC(data)}</strong> — ${item.qtd} funcionários simultaneamente</span>
+              <span class="badge-sobreposicao ${nivel}">${nivel === "critico" ? "🔴" : nivel === "atencao" ? "🟡" : "🟢"} ${
+            nivel === "critico" ? "acima do limite" : nivel === "atencao" ? "no limite" : "dentro do limite"
+          } (${limite})</span>
+            </div>
+            <div class="concentracao-nomes">${nomesUnicos.join(", ")}</div>
           </div>
         `;
         })
         .join("")}
     </div>
   `;
+}
+
+// Limite simultâneo recomendado, compartilhado (via localStorage) com a tela de Solicitações,
+// para os dois lugares do sistema usarem a mesma referência ao sinalizar concentração de férias.
+function obterLimiteSimultaneoDashboard() {
+  const salvo = Number(localStorage.getItem("ferias_limite_simultaneo"));
+  return salvo && salvo > 0 ? salvo : 3;
 }
 
 let ordenacaoSemSolicitacao = { campo: "nome", asc: true };

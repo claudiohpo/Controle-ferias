@@ -575,17 +575,33 @@ footer.rodape {
 .concentracao-lista {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .concentracao-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 4px;
   font-size: 0.88rem;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border: 1px solid var(--borda);
   border-radius: 8px;
+}
+
+.concentracao-item .concentracao-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.concentracao-item .concentracao-nomes {
+  color: var(--texto-suave);
+  font-size: 0.82rem;
+  white-space: normal;
+  overflow-wrap: break-word;
+  line-height: 1.5;
 }
 
 /* ---- Toggle de senha (olho) ---- */
@@ -842,6 +858,50 @@ body.redimensionando-coluna .col-resizer {
 /* ---- Seleção múltipla em tabelas (checkbox) ---- */
 .col-checkbox {
   width: 36px;
+}
+
+/* ---- Badges de sobreposição de férias (apoio à decisão de aprovação) ---- */
+.badge-sobreposicao {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: default;
+}
+
+.badge-sobreposicao.livre {
+  background: var(--sucesso-bg);
+  color: var(--sucesso);
+}
+
+.badge-sobreposicao.atencao {
+  background: var(--alerta-bg);
+  color: var(--alerta);
+}
+
+.badge-sobreposicao.critico {
+  background: var(--erro-bg);
+  color: var(--erro);
+}
+
+.sobreposicao-linha {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--texto-suave);
+  margin-top: 3px;
+}
+
+/* Colunas que legitimamente têm texto mais longo (nomes de conflito, comentários) podem quebrar
+   linha dentro da tabela redimensionável, em vez de cortar com reticências. */
+table.tabela-resizavel td.permite-quebra {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.4;
 }
 
 /* ---- Abas de importação (colar / arquivo) ---- */

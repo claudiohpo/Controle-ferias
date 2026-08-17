@@ -31,9 +31,18 @@
             <option value="rejeitado">Rejeitadas</option>
             <option value="cancelado">Canceladas</option>
           </select>
+          <label style="display:flex; align-items:center; gap:6px; margin:0; white-space:nowrap;" title="Usado para destacar na tabela quando aprovar uma solicitação ultrapassaria esse número de pessoas de férias ao mesmo tempo.">
+            <span class="hint" style="margin:0;">Limite simultâneo:</span>
+            <input type="number" id="limiteSimultaneo" min="1" style="width:64px;" />
+          </label>
           <button type="button" class="btn secundario pequeno" id="btnAbrirExportar">📤 Exportar relatório</button>
         </div>
       </div>
+      <p class="hint" style="margin-top:10px;">
+        A coluna <strong>Sobreposição</strong> mostra, para cada solicitação, quantos outros funcionários já aprovados (ou também
+        pendentes) têm período de férias coincidente — passe o mouse para ver quem são. Isso ajuda a decidir aprovações sem
+        ultrapassar o número de pessoas que podem estar de férias ao mesmo tempo.
+      </p>
       <div id="listaSolicitacoes" style="margin-top:16px;">Carregando...</div>
     </div>
   </div>

@@ -134,6 +134,12 @@ Uso interno / privado.
 
 ## 🆕 Changelog
 
+**v1.9**
+- **Ordenação na tabela de Solicitações**: cabeçalhos clicáveis (Funcionário, Início do Período, Status, Enviado em), igual à tabela de Funcionários.
+- **Detecção de sobreposição de férias** para apoiar a decisão de aprovação: cada solicitação mostra uma coluna "Sobreposição" com quantos outros funcionários já aprovados (ou também pendentes) têm período coincidente — passe o mouse para ver nomes e datas. Um campo "Limite simultâneo" (ajustável, padrão 3) sinaliza em amarelo quando aprovar chegaria nesse limite e em vermelho quando ultrapassaria.
+- Esse mesmo limite agora também é usado no dashboard, na seção "Dias com maior concentração de férias", para destacar visualmente os dias problemáticos.
+- **Correção**: a seção "Dias com maior concentração de férias" do dashboard não corta mais os nomes dos funcionários (antes mostrava só 3 nomes + "..."); agora mostra a lista completa, com quebra de linha normal.
+
 **v1.8**
 - **Correção de regra**: removida a restrição que só permitia marcar o adiantamento da 1ª parcela do 13º em janeiro. Este sistema serve para **montar a programação/escala de férias** entre funcionário e gestor — não é o lançamento oficial. Por isso, o funcionário pode manifestar essa preferência a qualquer momento; o requerimento formal e o cumprimento do prazo legal (janeiro do ano correspondente) ficam a cargo do RH no lançamento oficial.
 
