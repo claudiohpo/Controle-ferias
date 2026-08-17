@@ -5,7 +5,6 @@ function montarLinhasRelatorio(solicitacoes) {
   for (const s of solicitacoes) {
     const abono = s.abonoPecuniarioDias || 0;
     s.periodos.forEach((p, idx) => {
-      const ehPeriodoDoAdiantamento = s.adiantar13 && Number(s.periodoAdiantamento13) === idx + 1;
       linhas.push({
         nome: s.funcionarioNome || "-",
         cpf: formatarCPF(s.funcionarioCpf),
@@ -18,7 +17,7 @@ function montarLinhasRelatorio(solicitacoes) {
         fim: fmtData(somaDiasData(p.inicio, p.dias)),
         dias: p.dias,
         abono: idx === 0 ? abono : 0, // evita repetir o total do abono em cada período da mesma solicitação
-        adiantamento13: ehPeriodoDoAdiantamento ? "Sim" : "",
+        adiantamento13: idx === 0 && s.adiantar13 ? "Sim" : "", // preferência da solicitação, não vinculada a um período específico
         solicitadoEm: fmtData(s.criadoEm),
         comentario: s.comentarioGestor || "",
       });
@@ -60,7 +59,7 @@ function gerarPDFRelatorio(linhas, statusesSelecionados) {
   const statusTexto = statusesSelecionados.map(rotuloStatus).join(", ") || "nenhum";
   doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}  ·  Status incluídos: ${statusTexto}  ·  ${linhas.length} período(s)`, 30, 50);
 
-  const colunas = ["Funcionário", "CPF", "Matrícula", "Região", "Gestor", "Status", "Período", "Início", "Fim", "Dias", "Abono", "1ª Parc. 13º", "Solicitado em", "Comentário"];
+  const colunas = ["Funcionário", "CPF", "Matrícula", "Região", "Gestor", "Status", "Período", "Início", "Fim", "Dias", "Abono", "Adiantar 13º", "Solicitado em", "Comentário"];
   const corpo = linhas.map((l) => [
     l.nome,
     l.cpf,
@@ -112,7 +111,7 @@ function gerarExcelRelatorio(linhas) {
     "Fim do Período": l.fim,
     "Dias do Período": l.dias,
     "Abono Pecuniário (dias)": l.abono || "",
-    "1ª Parcela do 13º neste período": l.adiantamento13 || "",
+    "Adiantamento 1ª Parcela do 13º": l.adiantamento13 || "",
     "Solicitado em": l.solicitadoEm,
     "Comentário do Gestor": l.comentario,
   }));

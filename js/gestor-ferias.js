@@ -249,7 +249,7 @@ function renderTabela() {
               <td>${fmtData(s.criadoEm)}</td>
               <td>${s.periodos.map((p) => `${fmtData(p.inicio)} a ${fmtData(somaDiasData(p.inicio, p.dias))} (${p.dias}d)`).join("<br/>")}</td>
               <td>${s.abonoPecuniarioDias || 0} dias</td>
-              <td>${s.adiantar13 ? `🎁 Período ${s.periodoAdiantamento13}` : "-"}</td>
+              <td>${s.adiantar13 ? "🎁 Sim" : "-"}</td>
               <td class="permite-quebra">${renderBadgeSobreposicao(s, conflito, limite)}</td>
               <td>
                 ${

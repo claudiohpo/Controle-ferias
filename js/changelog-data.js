@@ -3,6 +3,16 @@
 // for atendida, uma nova entrada deve ser adicionada ao topo desta lista.
 const HISTORICO_VERSOES = [
   {
+    versao: "1.11",
+    data: "2026-08-15",
+    mudancas: {
+      alterado: [
+        "O fracionamento de férias passou de até 3 para até 2 períodos, conforme política interna da empresa (a CLT permitiria até 3, mas não será utilizado).",
+        "O adiantamento da 1ª parcela do 13º salário deixou de exigir a escolha de um período específico — agora é só uma marcação simples de 'sim/não'. Se não solicitado, o funcionário recebe o 13º normalmente, na data padrão, como os demais.",
+      ],
+    },
+  },
+  {
     versao: "1.10",
     data: "2026-08-15",
     mudancas: {

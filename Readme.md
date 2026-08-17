@@ -1,6 +1,6 @@
 # 🏖️ Sistema de Programação de Férias (CLT)
 
-Aplicação completa para funcionários programarem suas férias e gestores aprovarem, seguindo as regras da CLT (período aquisitivo, fracionamento em até 3 períodos, abono pecuniário e adiantamento da 1ª parcela do 13º salário).
+Aplicação completa para funcionários programarem suas férias e gestores aprovarem, seguindo as regras da CLT (período aquisitivo, abono pecuniário e adiantamento da 1ª parcela do 13º salário), com a política interna da empresa de dividir em no máximo 2 períodos.
 
 ## ✨ Funcionalidades
 
@@ -9,7 +9,7 @@ Aplicação completa para funcionários programarem suas férias e gestores apro
 - Validação automática das regras da CLT ao solicitar férias:
   - Início do gozo somente após 1 ano do período aquisitivo
   - Prazo limite de gozo (período concessivo)
-  - Fracionamento em até 3 períodos (um com ≥14 dias, demais com ≥5 dias)
+  - Fracionamento em até 2 períodos (política interna da empresa; um com ≥14 dias, o outro com ≥5 dias)
   - Abono pecuniário de até 1/3 dos dias de direito (máx. 10 dias)
   - Preferência de adiantamento da 1ª parcela do 13º salário, vinculada a um dos períodos (o requerimento formal e o lançamento oficial ficam a cargo do RH)
 - Painel do gestor: dashboard, CRUD de funcionários, importação em lote e aprovação/rejeição de solicitações
@@ -133,6 +133,10 @@ sistema-ferias/
 Uso interno / privado.
 
 ## 🆕 Changelog
+
+**v1.11**
+- **Fracionamento reduzido para 2 períodos** (política interna da empresa — a CLT permitiria até 3, mas não será utilizado). Aplicado na validação do backend e no formulário do funcionário.
+- **13º simplificado**: o adiantamento da 1ª parcela deixou de exigir escolha de período — agora é só um "sim/não". Se marcado, o funcionário recebe adiantado; se não, recebe na data normal, como os demais. Atualizado no formulário, na lista de solicitações (funcionário e gestor), no documento de pré-aprovação e no relatório exportável.
 
 **v1.10**
 - **Correção**: as tabelas de Solicitações e Funcionários voltaram a cortar texto ("17/08/20..", "🎁 Período...") mesmo com o redimensionamento ativo — a causa era uma regra de CSS genérica (`table { width: 100% }`) forçando a tabela a caber no espaço do container em vez de crescer conforme o conteúdo. Corrigido para que a tabela só role horizontalmente quando realmente não houver espaço, e não porque as colunas foram espremidas.
