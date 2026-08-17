@@ -3,6 +3,16 @@
 // for atendida, uma nova entrada deve ser adicionada ao topo desta lista.
 const HISTORICO_VERSOES = [
   {
+    versao: "1.10",
+    data: "2026-08-15",
+    mudancas: {
+      corrigido: [
+        "Corrigido bug em que as tabelas redimensionáveis (Solicitações, Funcionários) voltaram a cortar texto ('17/08/20..', '🎁 Período...') mesmo com o sistema de redimensionamento ativo — havia uma regra de CSS genérica forçando a tabela a caber 100% no espaço do container, mesmo quando o conteúdo precisava de mais espaço.",
+        "As telas de Solicitações e Funcionários agora usam um container mais largo, para aproveitar melhor o espaço da tela em vez de depender de rolagem horizontal.",
+      ],
+    },
+  },
+  {
     versao: "1.9",
     data: "2026-08-15",
     mudancas: {

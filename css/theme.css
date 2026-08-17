@@ -91,6 +91,10 @@ textarea {
   padding: 24px 16px 64px;
 }
 
+.container.largo {
+  max-width: 1600px;
+}
+
 .card {
   background: var(--bg-card);
   border: 1px solid var(--borda);
@@ -809,6 +813,11 @@ th.ordenavel.ativo .seta {
 /* ---- Tabelas padronizadas: título pode quebrar linha, dado nunca é cortado sem querer ---- */
 table.tabela-resizavel {
   table-layout: auto; /* travada para "fixed" via JS após medir a largura natural */
+  /* Sobrescreve o "table { width:100% }" genérico: a tabela deve poder crescer além do
+     container quando o conteúdo precisar (o .table-wrap cuida da rolagem horizontal),
+     em vez de espremer colunas e cortar texto. */
+  width: auto;
+  min-width: 100%;
 }
 
 table.tabela-resizavel th {

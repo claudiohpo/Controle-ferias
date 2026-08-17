@@ -134,6 +134,10 @@ Uso interno / privado.
 
 ## 🆕 Changelog
 
+**v1.10**
+- **Correção**: as tabelas de Solicitações e Funcionários voltaram a cortar texto ("17/08/20..", "🎁 Período...") mesmo com o redimensionamento ativo — a causa era uma regra de CSS genérica (`table { width: 100% }`) forçando a tabela a caber no espaço do container em vez de crescer conforme o conteúdo. Corrigido para que a tabela só role horizontalmente quando realmente não houver espaço, e não porque as colunas foram espremidas.
+- Essas duas telas agora usam um container mais largo (até 1600px), aproveitando melhor telas grandes antes de precisar de rolagem.
+
 **v1.9**
 - **Ordenação na tabela de Solicitações**: cabeçalhos clicáveis (Funcionário, Início do Período, Status, Enviado em), igual à tabela de Funcionários.
 - **Detecção de sobreposição de férias** para apoiar a decisão de aprovação: cada solicitação mostra uma coluna "Sobreposição" com quantos outros funcionários já aprovados (ou também pendentes) têm período coincidente — passe o mouse para ver nomes e datas. Um campo "Limite simultâneo" (ajustável, padrão 3) sinaliza em amarelo quando aprovar chegaria nesse limite e em vermelho quando ultrapassaria.
