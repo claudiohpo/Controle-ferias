@@ -59,6 +59,7 @@ function anosDisponiveis(periodos) {
 
 async function init() {
   if (!renderGestorNav("dashboard")) return;
+  inicializarModal("modalListaNatCorp");
 
   try {
     dadosDashboard = await Api.request("/api/dashboard");
@@ -84,13 +85,47 @@ async function init() {
 
 function renderStats() {
   const d = dadosDashboard;
+  const qtdNatCorp = (d.requisicoesNatCorp || []).length;
   document.getElementById("statsGrid").innerHTML = `
     <div class="stat"><div class="valor">${d.totalFuncionarios}</div><div class="rotulo">Funcionários</div></div>
     <div class="stat"><div class="valor">${d.pendentes}</div><div class="rotulo">Pendentes</div></div>
     <div class="stat"><div class="valor">${d.aprovadas}</div><div class="rotulo">Aprovadas</div></div>
     <div class="stat"><div class="valor">${d.rejeitadas}</div><div class="rotulo">Rejeitadas</div></div>
     <div class="stat"><div class="valor">${d.canceladas || 0}</div><div class="rotulo">Canceladas</div></div>
+    <div class="stat stat-clicavel" id="statNatCorp" role="button" tabindex="0" title="Ver funcionários e códigos">
+      <div class="valor">${qtdNatCorp}</div><div class="rotulo">📋 Requisições NatCorp</div>
+    </div>
   `;
+
+  const statNatCorp = document.getElementById("statNatCorp");
+  statNatCorp.addEventListener("click", abrirModalListaNatCorp);
+  statNatCorp.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") abrirModalListaNatCorp();
+  });
+}
+
+function abrirModalListaNatCorp() {
+  const lista = dadosDashboard.requisicoesNatCorp || [];
+  const container = document.getElementById("listaModalNatCorp");
+  if (!lista.length) {
+    container.innerHTML = `<p class="hint">Nenhuma requisição do NatCorp informada ainda pelos funcionários.</p>`;
+  } else {
+    container.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Funcionário</th><th>CPF</th><th>Nº Requisição NatCorp</th></tr></thead>
+          <tbody>
+            ${lista
+              .slice()
+              .sort((a, b) => a.funcionarioNome.localeCompare(b.funcionarioNome))
+              .map((r) => `<tr><td>${r.funcionarioNome}</td><td>${r.funcionarioCpf}</td><td>${r.numeroRequisicaoNatCorp}</td></tr>`)
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+  abrirModal("modalListaNatCorp");
 }
 
 function renderDonut() {

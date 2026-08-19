@@ -3,6 +3,18 @@
 // for atendida, uma nova entrada deve ser adicionada ao topo desta lista.
 const HISTORICO_VERSOES = [
   {
+    versao: "1.12",
+    data: "2026-08-17",
+    mudancas: {
+      adicionado: [
+        "Funcionário agora pode informar o número da requisição enviada oficialmente pelo portal NatCorp ao RH, vinculando-a à sua solicitação de férias aprovada — botão e modal aparecem apenas quando o status é 'aprovado'.",
+        "O número pode ser editado a qualquer momento pelo próprio funcionário.",
+        "Coluna 'Nº NatCorp' na tabela de Solicitações do gestor e no relatório exportável (PDF/Excel).",
+        "Novo card no dashboard 'Requisições NatCorp', com a contagem de números já informados; clicável, abre um modal com a lista de funcionários e seus respectivos códigos.",
+      ],
+    },
+  },
+  {
     versao: "1.11",
     data: "2026-08-15",
     mudancas: {

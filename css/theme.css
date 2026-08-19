@@ -249,6 +249,21 @@ textarea:focus {
   margin-top: 4px;
 }
 
+.stat-clicavel {
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+
+.stat-clicavel:hover,
+.stat-clicavel:focus-visible {
+  border-color: var(--primaria);
+  outline: none;
+}
+
+.stat-clicavel:active {
+  transform: scale(0.98);
+}
+
 .badge {
   display: inline-block;
   padding: 3px 10px;

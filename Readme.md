@@ -125,7 +125,7 @@ sistema-ferias/
 | `/api/regioes`       | DELETE | Remove uma região (`?id=...`), bloqueado se houver funcionários nela |
 | `/api/ferias`        | GET    | Lista solicitações (próprias, ou todas dentro da região do gestor) |
 | `/api/ferias`        | POST   | Funcionário envia uma solicitação de férias |
-| `/api/ferias`        | PATCH  | Gestor aprova/rejeita/cancela (`?id=...`, `{ status: 'aprovado'|'rejeitado'|'cancelado', comentario }`) |
+| `/api/ferias`        | PATCH  | Gestor aprova/rejeita/cancela (`?id=...`, `{ status: 'aprovado'|'rejeitado'|'cancelado', comentario }`); ou funcionário informa/edita o nº da requisição NatCorp na própria solicitação já aprovada (`?id=...`, `{ numeroRequisicaoNatCorp }`) |
 | `/api/dashboard`     | GET    | Estatísticas para o gestor (filtradas por região) |
 
 ## 📄 Licença
@@ -133,6 +133,11 @@ sistema-ferias/
 Uso interno / privado.
 
 ## 🆕 Changelog
+
+**v1.12**
+- **Número da requisição NatCorp**: quando a solicitação de férias é aprovada, o funcionário ganha um botão para informar o número da requisição enviada oficialmente ao RH pelo portal NatCorp da empresa, vinculando os dois registros. Só aparece quando o status é "aprovado"; qualquer outro status não mostra a opção. O número pode ser editado depois, se precisar.
+- O número aparece na tabela de Solicitações do gestor, no documento de pré-aprovação impresso e no relatório exportável (PDF/Excel).
+- Novo card no dashboard **"📋 Requisições NatCorp"**, com a contagem de números já informados — clicável, abre um modal com a lista de funcionários e seus respectivos códigos.
 
 **v1.11**
 - **Fracionamento reduzido para 2 períodos** (política interna da empresa — a CLT permitiria até 3, mas não será utilizado). Aplicado na validação do backend e no formulário do funcionário.

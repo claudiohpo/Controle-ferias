@@ -107,6 +107,7 @@ module.exports = async (req, res) => {
         periodos: periodos.map((p) => ({ inicio: p.inicio, dias: Number(p.dias) })),
         abonoPecuniarioDias,
         adiantar13,
+        numeroRequisicaoNatCorp: null,
         totalDias: validacao.totalDias,
         status: "pendente",
         comentarioGestor: null,
@@ -119,14 +120,17 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === "PATCH") {
-      const payload = requireRole(req, res, "gestor");
-      if (!payload) return;
+      const payload = verifyToken(req);
+      if (!payload) {
+        res.statusCode = 401;
+        return res.end(JSON.stringify({ error: "Não autenticado." }));
+      }
       const body = await readBody(req);
       const q = req.query || {};
       const id = q.id || body.id;
-      if (!id || !body.status || !["aprovado", "rejeitado", "cancelado"].includes(body.status)) {
+      if (!id) {
         res.statusCode = 400;
-        return res.end(JSON.stringify({ error: "Informe id e status ('aprovado', 'rejeitado' ou 'cancelado')." }));
+        return res.end(JSON.stringify({ error: "ID obrigatório." }));
       }
       let solicitacaoId;
       try {
@@ -140,27 +144,63 @@ module.exports = async (req, res) => {
         res.statusCode = 404;
         return res.end(JSON.stringify({ error: "Solicitação não encontrada." }));
       }
-      const regioes = regioesPermitidas(payload);
-      if (regioes && !regioes.includes(existente.funcionarioRegiao)) {
-        res.statusCode = 403;
-        return res.end(JSON.stringify({ error: "Você não tem acesso à região deste funcionário." }));
-      }
-      if (body.status === "cancelado" && !["aprovado", "pendente"].includes(existente.status)) {
-        res.statusCode = 400;
-        return res.end(JSON.stringify({ error: "Somente solicitações pendentes ou aprovadas podem ser canceladas." }));
-      }
-      await solicitacoes.updateOne(
-        { _id: solicitacaoId },
-        {
-          $set: {
-            status: body.status,
-            comentarioGestor: body.comentario || null,
-            atualizadoEm: new Date(),
-          },
+
+      // Funcionário: só pode registrar/editar o número da requisição no NatCorp,
+      // e apenas na sua própria solicitação já aprovada.
+      if (payload.role === "funcionario") {
+        if (existente.funcionarioId !== payload.funcionarioId) {
+          res.statusCode = 403;
+          return res.end(JSON.stringify({ error: "Você só pode editar a sua própria solicitação." }));
         }
-      );
-      res.statusCode = 200;
-      return res.end(JSON.stringify({ message: `Solicitação ${body.status}.` }));
+        if (existente.status !== "aprovado") {
+          res.statusCode = 400;
+          return res.end(JSON.stringify({ error: "O número da requisição só pode ser informado após a aprovação das férias." }));
+        }
+        if (body.numeroRequisicaoNatCorp === undefined) {
+          res.statusCode = 400;
+          return res.end(JSON.stringify({ error: "Informe o número da requisição." }));
+        }
+        const numero = String(body.numeroRequisicaoNatCorp).trim();
+        if (!numero) {
+          res.statusCode = 400;
+          return res.end(JSON.stringify({ error: "Informe um número de requisição válido." }));
+        }
+        await solicitacoes.updateOne({ _id: solicitacaoId }, { $set: { numeroRequisicaoNatCorp: numero, atualizadoEm: new Date() } });
+        res.statusCode = 200;
+        return res.end(JSON.stringify({ message: "Número da requisição salvo com sucesso." }));
+      }
+
+      // Gestor: aprova, rejeita ou cancela a solicitação.
+      if (payload.role === "gestor") {
+        if (!body.status || !["aprovado", "rejeitado", "cancelado"].includes(body.status)) {
+          res.statusCode = 400;
+          return res.end(JSON.stringify({ error: "Informe id e status ('aprovado', 'rejeitado' ou 'cancelado')." }));
+        }
+        const regioes = regioesPermitidas(payload);
+        if (regioes && !regioes.includes(existente.funcionarioRegiao)) {
+          res.statusCode = 403;
+          return res.end(JSON.stringify({ error: "Você não tem acesso à região deste funcionário." }));
+        }
+        if (body.status === "cancelado" && !["aprovado", "pendente"].includes(existente.status)) {
+          res.statusCode = 400;
+          return res.end(JSON.stringify({ error: "Somente solicitações pendentes ou aprovadas podem ser canceladas." }));
+        }
+        await solicitacoes.updateOne(
+          { _id: solicitacaoId },
+          {
+            $set: {
+              status: body.status,
+              comentarioGestor: body.comentario || null,
+              atualizadoEm: new Date(),
+            },
+          }
+        );
+        res.statusCode = 200;
+        return res.end(JSON.stringify({ message: `Solicitação ${body.status}.` }));
+      }
+
+      res.statusCode = 403;
+      return res.end(JSON.stringify({ error: "Acesso não autorizado." }));
     }
 
     res.setHeader("Allow", "GET,POST,PATCH");

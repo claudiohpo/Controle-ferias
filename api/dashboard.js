@@ -34,13 +34,25 @@ module.exports = async (req, res) => {
 
     // Períodos aprovados, usados para montar o calendário anual e os gráficos de ocupação.
     const aprovadasDocs = await solicitacoes
-      .find({ ...filtroSolicitacoes, status: "aprovado" }, { projection: { funcionarioNome: 1, funcionarioCpf: 1, periodos: 1 } })
+      .find(
+        { ...filtroSolicitacoes, status: "aprovado" },
+        { projection: { funcionarioNome: 1, funcionarioCpf: 1, periodos: 1, numeroRequisicaoNatCorp: 1 } }
+      )
       .toArray();
     const feriasAprovadas = aprovadasDocs.map((s) => ({
       funcionarioNome: s.funcionarioNome,
       funcionarioCpf: s.funcionarioCpf,
       periodos: s.periodos,
     }));
+
+    // Requisições com número do NatCorp já informado pelo funcionário, para o card do dashboard.
+    const requisicoesNatCorp = aprovadasDocs
+      .filter((s) => s.numeroRequisicaoNatCorp)
+      .map((s) => ({
+        funcionarioNome: s.funcionarioNome,
+        funcionarioCpf: s.funcionarioCpf,
+        numeroRequisicaoNatCorp: s.numeroRequisicaoNatCorp,
+      }));
 
     res.statusCode = 200;
     return res.end(
@@ -52,6 +64,7 @@ module.exports = async (req, res) => {
         canceladas,
         semSolicitacao,
         feriasAprovadas,
+        requisicoesNatCorp,
       })
     );
   } catch (err) {

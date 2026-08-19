@@ -233,6 +233,7 @@ function renderTabela() {
             <th>Períodos</th>
             <th>Abono</th>
             <th>13º adiantado</th>
+            <th>Nº NatCorp</th>
             <th>Sobreposição</th>
             <th class="nao-redimensionavel">Ações</th>
           </tr>
@@ -250,6 +251,7 @@ function renderTabela() {
               <td>${s.periodos.map((p) => `${fmtData(p.inicio)} a ${fmtData(somaDiasData(p.inicio, p.dias))} (${p.dias}d)`).join("<br/>")}</td>
               <td>${s.abonoPecuniarioDias || 0} dias</td>
               <td>${s.adiantar13 ? "🎁 Sim" : "-"}</td>
+              <td>${s.numeroRequisicaoNatCorp || `<span class="hint">-</span>`}</td>
               <td class="permite-quebra">${renderBadgeSobreposicao(s, conflito, limite)}</td>
               <td>
                 ${

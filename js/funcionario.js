@@ -23,6 +23,9 @@ async function init() {
     window.location.href = "index.html";
   });
 
+  inicializarModal("modalNatCorp");
+  document.getElementById("formNatCorp").addEventListener("submit", salvarNumeroNatCorp);
+
   try {
     funcionarioAtual = await Api.request("/api/funcionarios?me=true");
   } catch (err) {
@@ -204,7 +207,7 @@ async function renderSolicitacoes() {
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>Períodos</th><th>Abono</th><th>13º adiantado</th><th>Total</th><th>Status</th><th>Enviado em</th><th></th></tr>
+          <tr><th>Períodos</th><th>Abono</th><th>13º adiantado</th><th>Total</th><th>Status</th><th>Enviado em</th><th>Nº NatCorp</th><th></th></tr>
         </thead>
         <tbody>
           ${solicitacoes
@@ -217,6 +220,13 @@ async function renderSolicitacoes() {
               <td>${s.totalDias} dias</td>
               <td><span class="badge ${s.status}">${s.status}</span>${s.comentarioGestor ? `<div class="hint">${s.comentarioGestor}</div>` : ""}</td>
               <td>${fmtData(s.criadoEm)}</td>
+              <td>${
+                s.status === "aprovado"
+                  ? s.numeroRequisicaoNatCorp
+                    ? `${s.numeroRequisicaoNatCorp} <button class="btn-icone" onclick="abrirModalNatCorp('${s._id}')" title="Editar número" aria-label="Editar número">✏️</button>`
+                    : `<button class="btn secundario pequeno" onclick="abrirModalNatCorp('${s._id}')">+ Informar nº</button>`
+                  : `<span class="hint">-</span>`
+              }</td>
               <td>${s.status === "aprovado" ? `<button class="btn secundario pequeno" onclick="imprimirComprovante('${s._id}')">Imprimir pré-aprovação</button>` : ""}</td>
             </tr>
           `
@@ -228,6 +238,37 @@ async function renderSolicitacoes() {
   `;
 
   window.__solicitacoes = solicitacoes;
+}
+
+function abrirModalNatCorp(id) {
+  const s = (window.__solicitacoes || []).find((x) => x._id === id);
+  if (!s) return;
+  document.getElementById("natCorpSolicitacaoId").value = id;
+  document.getElementById("natCorpNumero").value = s.numeroRequisicaoNatCorp || "";
+  document.getElementById("msgNatCorp").className = "mensagem";
+  abrirModal("modalNatCorp");
+  setTimeout(() => document.getElementById("natCorpNumero").focus(), 50);
+}
+
+async function salvarNumeroNatCorp(e) {
+  e.preventDefault();
+  const msg = document.getElementById("msgNatCorp");
+  msg.className = "mensagem";
+  const id = document.getElementById("natCorpSolicitacaoId").value;
+  const numero = document.getElementById("natCorpNumero").value.trim();
+  if (!numero) {
+    msg.className = "mensagem erro";
+    msg.textContent = "Informe um número válido.";
+    return;
+  }
+  try {
+    await Api.request(`/api/ferias?id=${id}`, { method: "PATCH", body: { numeroRequisicaoNatCorp: numero } });
+    fecharModal("modalNatCorp");
+    await renderSolicitacoes();
+  } catch (err) {
+    msg.className = "mensagem erro";
+    msg.textContent = err.message || "Não foi possível salvar o número.";
+  }
 }
 
 function imprimirComprovante(id) {
@@ -269,6 +310,11 @@ function imprimirComprovante(id) {
         : "Não solicitado — recebe na data normal, como os demais."
     }</p>
     <p><strong>Status:</strong> Pré-aprovada pelo gestor (aguarda efetivação pelo RH/gerente)</p>
+    ${
+      s.numeroRequisicaoNatCorp
+        ? `<p><strong>Nº da requisição no NatCorp:</strong> ${s.numeroRequisicaoNatCorp}</p>`
+        : `<p><strong>Nº da requisição no NatCorp:</strong> ainda não informado</p>`
+    }
     </body></html>
   `);
   janela.document.close();
